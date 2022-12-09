@@ -1,0 +1,75 @@
+{
+  "project_info": {
+    "project_number": "450456523546",
+    "firebase_url": "https://memechatvideocall-default-rtdb.firebaseio.com",
+    "project_id": "memechatvideocall",
+    "storage_bucket": "memechatvideocall.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:450456523546:android:bfdb9386037d60ed9252a3",
+        "android_client_info": {
+          "package_name": "com.memechathost"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "450456523546-3aeuetraqoamu5u14j3npbjj5abdtdft.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUbg1su4fM8gVvxwHfFxoisJ_l3HbejmA"
+        },
+        {
+          "current_key": "AIzaSyDTlNszrIzKTECwLH9SlathP7yRWt4YCl8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "450456523546-3aeuetraqoamu5u14j3npbjj5abdtdft.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:450456523546:android:b9be670d3e192cc49252a3",
+        "android_client_info": {
+          "package_name": "com.memechatnew"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "450456523546-3aeuetraqoamu5u14j3npbjj5abdtdft.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUbg1su4fM8gVvxwHfFxoisJ_l3HbejmA"
+        },
+        {
+          "current_key": "AIzaSyDTlNszrIzKTECwLH9SlathP7yRWt4YCl8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "450456523546-3aeuetraqoamu5u14j3npbjj5abdtdft.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
