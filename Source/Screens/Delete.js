@@ -5,6 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   StatusBar,
+  Pressable,
+  Alert,
 } from 'react-native';
 import React from 'react';
 import {
@@ -12,30 +14,54 @@ import {
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {RadioButton} from 'react-native-paper';
-import {baseurl, token, localBaseurl} from '../config/baseurl';
+import { RadioButton } from 'react-native-paper';
+import { baseurl, token, localBaseurl } from '../config/baseurl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import SimpleToast from 'react-native-simple-toast';
 const deleteAPI = localBaseurl + 'deleteuserProfile';
 
 const Delete = props => {
-  const [checked, setChecked] = React.useState('');
-  const [data, setData] = React.useState();
 
-  const deleteAcc = d => {
-    console.log(d);
-  };
-  const deleteAccount = async () => {
+  const [checked, setChecked] = React.useState('');
+
+
+  const confirmDelete = async () => {
+    if (!checked) {
+      return;
+    };
     const token = await AsyncStorage.getItem('token');
     axios
-      .delete(deleteAPI, {headers: {Authorization: `Bearer ${token}`}})
+      .delete(deleteAPI, { headers: { Authorization: `Bearer ${token}` } })
       .then(response => {
-        alert('Account Delete successfully');
-        console.log(response.data);
-        props.navigation.navigate('LoginWithPhone');
-        setData(response.data);
+        SimpleToast.show('Account is Deleted successfully');
+        console.log("Delete account--->>", response.data);
+        props.navigation.replace('LoginWithPhone');
+        // setData(response.data);
         //.then(() => setStatus('Delete successful'));
-      });
+      })
+      .catch(err => {
+        console.log("Delete account-->>", err.response.data);
+        SimpleToast.show('Something went wrong!');
+      })
+  };
+
+  const _deleteAccount = async () => {
+    if (!checked) {
+      return;
+    };
+    Alert.alert(
+      "Delete your account!",
+      "Your account will be deleted permanently...",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { text: "OK", onPress: confirmDelete }
+      ]
+    );
   };
 
   return (
@@ -43,7 +69,7 @@ const Delete = props => {
       <StatusBar backgroundColor="#b15eff" />
       <View style={styles.container}>
         <View style={styles.head}>
-          <View style={{width: wp('25%'), height: hp('4%')}}>
+          <View style={{ width: wp('25%'), height: hp('4%') }}>
             <TouchableOpacity
               onPress={() => props.navigation.goBack('Feedback')}
               style={{
@@ -57,7 +83,7 @@ const Delete = props => {
             </TouchableOpacity>
           </View>
           <View
-            style={{width: wp('50%'), height: hp('4%'), alignItems: 'center'}}>
+            style={{ width: wp('50%'), height: hp('4%'), alignItems: 'center' }}>
             <Text
               style={{
                 fontFamily: 'Roboto-Bold',
@@ -68,7 +94,7 @@ const Delete = props => {
               Delete Account
             </Text>
           </View>
-          <View style={{width: wp('25%'), height: hp('4%')}}></View>
+          <View style={{ width: wp('25%'), height: hp('4%') }}></View>
         </View>
         <View
           style={{
@@ -76,7 +102,7 @@ const Delete = props => {
             width: wp('95%'),
             padding: wp('2.2%'),
             marginTop: hp('1.2%'),
-            alignSelf: 'center',
+            alignSelf: 'center'
           }}>
           <Text
             style={{
@@ -106,8 +132,8 @@ const Delete = props => {
             us know.
           </Text>
         </View>
-
-        <View
+        <Pressable
+          onPress={() => setChecked('first')}
           style={{
             height: hp('15%'),
             width: wp('95%'),
@@ -136,7 +162,7 @@ const Delete = props => {
                 value="first"
                 status={checked === 'first' ? 'checked' : 'unchecked'}
                 onPress={() => setChecked('first')}
-                onChange={d => deleteAcc(d)}
+              // onChange={d => deleteAcc(d)}
               />
             </View>
             <Text
@@ -182,7 +208,7 @@ const Delete = props => {
             numberOfLines={1}>
             retrieve your data or your account.
           </Text>
-        </View>
+        </Pressable>
 
         <View
           style={{
@@ -203,7 +229,7 @@ const Delete = props => {
               alignItems: 'center',
               justifyContent: 'center',
             }}
-            onPress={props.navigation.navigate('SignIn')}>
+            onPress={confirmDelete}>
             <Text
               style={{
                 color: '#ffffff',

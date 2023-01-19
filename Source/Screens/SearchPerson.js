@@ -7,38 +7,54 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  FlatList
 } from 'react-native';
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {Searchbar} from 'react-native-paper';
+import { Searchbar } from 'react-native-paper';
 import axios from 'axios';
-import {baseurl, localBaseurl, token} from '../config/baseurl';
+import { baseurl, localBaseurl, token } from '../config/baseurl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import Colors from '../Assetst/Constants/Colors';
 const search = localBaseurl + 'getoneHostuser/';
 
 const SearchPerson = props => {
   const [input, setInput] = useState('');
   const [results, setResults] = useState([]);
   const [searchTimer, setSearchTimer] = useState(null);
+  // console.log(props.route.params);
+  const hostData = props.route.params?.host;
+  // const filterHostData = props.route.params?.host;
+  const appData = props.route.params?.appData;
+  const roomID = props.route.params?.roomID;
 
-  const searchApi = async text => {
-    const token = await AsyncStorage.getItem('token');
-    console.log(search);
-    console.log(token);
-    axios
-      .get(search + input, {headers: {Authorization: `Bearer ${token}`}})
-      .then(res => {
-        console.log(res.data);
-        //setInput(res.data);
+  const [filterHostData, setFilterHostData] = useState(hostData);
+
+
+
+  const search = (val) => {
+    // console.log(val);
+    if (val) {
+      const newData = hostData.filter((item) => {
+        const itemData = item.FirstName ? item.FirstName.toUpperCase() : ''.toUpperCase();
+        // console.log(itemData);
+        const textData = val.toUpperCase();
+        return itemData.indexOf(textData) > -1;
       })
-      .catch(err => console.log(err));
+      setFilterHostData(newData);
+    }
+    else {
+      setFilterHostData(hostData);
+      setInput(val);
+    }
   };
+
 
   return (
     <SafeAreaView>
@@ -63,7 +79,7 @@ const SearchPerson = props => {
             <FontAwesome5Icon
               name="angle-left"
               size={hp('2.8%')}
-              style={{color: '#000'}}
+              style={{ color: '#000' }}
             />
           </TouchableOpacity>
           <View
@@ -80,7 +96,7 @@ const SearchPerson = props => {
               <FontAwesome5Icon
                 name="bell"
                 size={hp('2.2%')}
-                style={{color: '#000'}}
+                style={{ color: '#000' }}
               />
             </TouchableOpacity>
             {/* <TouchableOpacity
@@ -106,17 +122,10 @@ const SearchPerson = props => {
             placeholder="Search"
             // placeholderStyle={styles.placeholderStyle}
             onChangeText={text => {
-              if (searchTimer) {
-                clearTimeout(searchTimer);
-              }
-              setInput(text);
-              setSearchTimer(
-                setTimeout(() => {
-                  searchApi(text);
-                }, 2000),
-              );
+              search(text);
+              // console.log(text);
             }}
-            value={input}
+            defaultValue={input}
             style={{
               width: wp('94%'),
               height: hp('5.8%'),
@@ -134,38 +143,51 @@ const SearchPerson = props => {
             backgroundColor: '#fff',
             marginTop: hp('0.8%'),
           }}>
-          <ScrollView>
-            <TouchableOpacity
-              onPress={() => props.navigation.navigate('ProfileDetails')}>
-              <View
-                style={{
-                  height: hp('7%'),
-                  width: wp('100%'),
-                  //backgroundColor: 'purple',
-                  flexDirection: 'row',
-                  alignItems: 'center',
+          <FlatList
+            data={filterHostData}
+            keyExtractor={(item, index) => index}
+            renderItem={({ item, index }) => (
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => {
+                  let navData = {
+                    appData: appData,
+                    roomID: roomID,
+                    user: item,
+                  };
+                  props.navigation.navigate('ProfileDetails', navData);
                 }}>
-                <Image
-                  source={require('../Assetst/Images/Lady9.png')}
+                <View
                   style={{
-                    width: wp('10%'),
-                    height: wp('10%'),
-                    borderRadius: wp('10%'),
-                    marginLeft: wp('5%'),
-                  }}
-                />
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: '#000',
-                    fontWeight: 'bold',
-                    marginLeft: 6,
+                    height: hp('7%'),
+                    width: wp('100%'),
+                    // backgroundColor: 'purple',
+                    flexDirection: 'row',
+                    alignItems: 'center',
                   }}>
-                  Jiya Kumari
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </ScrollView>
+                  <Image
+                    source={{ uri: item.userImage }}
+                    style={{
+                      width: wp('10%'),
+                      height: wp('10%'),
+                      borderRadius: wp('10%'),
+                      marginLeft: wp('5%'),
+                      backgroundColor: 'pink'
+                    }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: '#000',
+                      fontWeight: 'bold',
+                      marginLeft: 6,
+                    }}>
+                    {item.FirstName} {item.LastName}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
         </View>
       </View>
     </SafeAreaView>

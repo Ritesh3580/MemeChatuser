@@ -107,11 +107,11 @@ class StackNavigation extends Component {
           component={ProfileDetails}
           options={{headerShown: false}}
         />
-        <Stack.Screen
+        {/* <Stack.Screen
           name="MyWallet"
           component={MyWallet}
           options={{headerShown: false}}
-        />
+        /> */}
         <Stack.Screen
           name="Transaction"
           component={Transaction}
@@ -122,16 +122,16 @@ class StackNavigation extends Component {
           component={Report}
           options={{headerShown: false}}
         />
-        <Stack.Screen
+        {/* <Stack.Screen
           name="Settings"
           component={Setting}
           options={{headerShown: false}}
-        />
-        <Stack.Screen
+        /> */}
+        {/* <Stack.Screen
           name="BlockList"
           component={BlockList}
           options={{headerShown: false}}
-        />
+        /> */}
         <Stack.Screen
           name="Language"
           component={Language}
@@ -142,11 +142,11 @@ class StackNavigation extends Component {
           component={Feedback}
           options={{headerShown: false}}
         />
-        <Stack.Screen
+        {/* <Stack.Screen
           name="Delete"
           component={Delete}
           options={{headerShown: false}}
-        />
+        /> */}
         <Stack.Screen
           name="Refer&earn"
           component={ReferEarn}
@@ -157,11 +157,11 @@ class StackNavigation extends Component {
           component={Edit}
           options={{headerShown: false}}
         />
-        <Stack.Screen
+        {/* <Stack.Screen
           name="ProfileEdit"
           component={ProfileEdit}
           options={{headerShown: false}}
-        />
+        /> */}
         <Stack.Screen
           name="City"
           component={City}

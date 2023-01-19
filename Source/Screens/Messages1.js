@@ -126,7 +126,7 @@ const Messages1 = props => {
                   <Text
                     style={{fontSize: hp('1.5%'), color: '#949894'}}
                     numberOfLines={1}>
-                    we can assist you anytime if u have any issue then.....
+                    we can assist you anytime if you have any issue
                   </Text>
                 </View>
               </View>

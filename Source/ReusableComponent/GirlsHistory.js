@@ -8,9 +8,23 @@ import Colors from '../Assetst/Constants/Colors';
 const GirlsHistory = (props) => {
 
     return (
-        <TouchableOpacity style={{ width: hp('10%'), height: hp('10%'), borderRadius: hp('10%'), backgroundColor: Colors.verylightGray, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#b15eff', marginHorizontal: wp('2%') }} >
+        <TouchableOpacity
+            key={props._key}
+            style={{
+                width: hp('10%'),
+                height: hp('10%'),
+                borderRadius: hp('10%'),
+                backgroundColor: Colors.verylightGray,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 2,
+                borderColor: '#b15eff',
+                marginHorizontal: wp('2%')
+            }}
+            onPress={props.click ? props.click : () => { }}
+        >
             <Image
-                source={props.img}
+                source={{uri:props.img}}
                 style={{
                     width: hp('8%'),
                     height: hp('8%'),

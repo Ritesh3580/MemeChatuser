@@ -12,19 +12,18 @@ import React, {useState, useEffect} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Picker} from '@react-native-picker/picker';
+import Clipboard from '@react-native-clipboard/clipboard';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import SimpleToast from 'react-native-simple-toast';
 import {baseurl, localBaseurl, token} from '../config/baseurl';
+import { useIsFocused } from '@react-navigation/native';
 
-const profileEditProfile =
-  localBaseurl + 'updateduserPeofile/62a8197dba6594efca308cfb';
-const fillDataUrl = localBaseurl + 'showProfile';
-
-const Edit = ({navigation, props}) => {
+const Edit = ({navigation, route}) => {
   const [name, setName] = useState('');
   const [data, setData] = useState(null);
   const [date, setDate] = useState('');
@@ -35,6 +34,43 @@ const Edit = ({navigation, props}) => {
   const [email, setEmail] = useState('');
   const [phoneNo, setPhoneNo] = useState('');
   const [selectedRelationship, setselectedRelationship] = useState('');
+  const isFocused = useIsFocused();
+
+  useEffect(()=>{
+    if(route.params?.city){
+      // console.log("city from city-->>",route.params.city);
+      if(route.params.city?.name){
+        let _loc = route.params.city.name +", " + route.params.city.state;
+        setLocation(_loc);
+      }
+      else{
+        setLocation(route.params.city);
+      }
+    }
+  },[route.params?.city]);
+
+  useEffect(() => {
+    if(isFocused){
+      _getUserProfile();
+    }
+  }, [isFocused]);
+
+  const _getUserProfile = async () => {
+    const token = await AsyncStorage.getItem('token');
+    axios
+      .get(localBaseurl + 'showProfile', {headers: {Authorization: `Bearer ${token}`}})
+      .then(res => {
+        setProfile(res.data);
+        setName(res.data.fullName);
+        setId(res.data.userId);
+        setGender(res.data.gender);
+        setPhoneNo(res.data.phone);
+        !route.params?.city && setLocation(res.data.city);
+        setEmail(res.data.emailId);
+        setDate(res.data.dateOfBirth);
+        res.data.relationshipStatus && setselectedRelationship(res.data.relationshipStatus);
+      });
+  };
 
   const nameUser = E => {
     setName(E.nativeEvent.text);
@@ -44,50 +80,28 @@ const Edit = ({navigation, props}) => {
     setselectedRelationship(R);
   };
 
-  const userData = {
-    fullName: name,
-  };
 
-  const api = async () => {
-    alert('api call');
+  const _updateProfile = async () => {
+    if (selectedRelationship == '') {
+      alert('Select your relationship status');
+      return;
+    }
     const token = await AsyncStorage.getItem('token');
-    console.log('nikal yaha se', profileEditProfile, userData);
+    const userData = {
+      fullName: name,
+      city: location,
+      relationshipStatus: selectedRelationship
+    };
     axios
-      .put(profileEditProfile, userData, {
+      .put(localBaseurl + 'updateduserPeofile', userData, {
         headers: {Authorization: `Bearer ${token}`},
       })
       .then(res => {
+        SimpleToast.show('Successfully Updated');
         navigation.navigate('ProfileEdit');
-        setData(res.data);
-        console.log(res.data);
-        alert('updated');
       });
   };
-  const api1 = async () => {
-    const token = await AsyncStorage.getItem('token');
-    axios
-      .get(fillDataUrl, {headers: {Authorization: `Bearer ${token}`}})
-      .then(res => {
-        console.log('jatnisfdaeslc', res.data);
-        setProfile(res.data);
-        setName(res.data.fullName);
-        setId(res.data.userId);
-        setGender(res.data.gender);
-        setPhoneNo(res.data.phone);
-        setLocation(res.data.city);
-        setEmail(res.data.emailId);
-        setDate(res.data.dateOfBirth);
-      });
-  };
-  useEffect(() => {
-    api1();
-  }, []);
 
-  const valid = () => {
-    if (selectedRelationship == '') {
-      alert('Select Your Gender');
-    }
-  };
 
   return (
     <SafeAreaView>
@@ -96,7 +110,7 @@ const Edit = ({navigation, props}) => {
         <View style={styles.head}>
           <View style={{width: wp('33%'), height: hp('4%')}}>
             <TouchableOpacity
-              onPress={() => navigation.goBack('ProfileEdit')}
+              onPress={() => navigation.goBack()}
               style={{
                 width: wp('8%'),
                 height: hp('4%'),
@@ -157,7 +171,7 @@ const Edit = ({navigation, props}) => {
                   color: '#000000',
                 }}
                 onChange={E => nameUser(E)}
-                value={profile && name}
+                defaultValue={name}
               />
             </View>
             {/* //onChangeText={text => setProfileName(text)}
@@ -196,6 +210,7 @@ const Edit = ({navigation, props}) => {
               paddingRight: wp('2.5%'),
             }}>
             <TouchableOpacity
+              onPress={()=>Clipboard.setString(profile?.userId || '')}
               style={{
                 flexDirection: 'row',
                 height: hp('4%'),
@@ -396,9 +411,9 @@ const Edit = ({navigation, props}) => {
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
-                onPress={() => props.navigation.navigate('City')}>
+                onPress={() => navigation.navigate('City',location)}>
                 <Text style={{fontSize: hp('2%'), color: '#000000'}}>
-                  {profile && profile.city}
+                  {profile && location}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -435,7 +450,7 @@ const Edit = ({navigation, props}) => {
               onValueChange={R => realtionShip(R)}>
               <Picker.Item
                 label="Status"
-                value="Status"
+                value=""
                 style={{
                   fontSize: hp('2%'),
                   color: '#b15eff',
@@ -484,7 +499,7 @@ const Edit = ({navigation, props}) => {
               justifyContent: 'center',
               marginTop: hp('20%'),
             }}
-            onPress={api}>
+            onPress={_updateProfile}>
             <Text
               style={{
                 color: '#ffffff',
@@ -520,9 +535,8 @@ const styles = StyleSheet.create({
   inputTxt4: {
     width: wp('32%'),
     height: hp('5%'),
-
+    color: "#000",
     borderRadius: hp('2%'),
-
     justifyContent: 'center',
     alignItems: 'flex-end',
   },

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import React, { Component } from 'react'
 import {
     Button,
@@ -12,7 +13,6 @@ import {
     Image,
     TouchableOpacity,
 } from 'react-native';
-// import { Actions } from 'react-native-router-flux';
 
 import ZegoExpressEngine, {
     ZegoTextureView,
@@ -21,6 +21,7 @@ import ZegoExpressEngine, {
 } from 'zego-express-engine-reactnative';
 import { ZegoExpressManager } from '../../ZegoExpressManager';
 import { ZegoMediaOptions } from '../../ZegoExpressManager/index.entity';
+import { baseurl, localBaseurl } from '../config/baseurl';
 
 
 const styles = StyleSheet.create({
@@ -120,11 +121,14 @@ export default class CallPage extends Component {
     roomID;
     userID;
     userName;
+    timeRef;
+    targetUser;
     appData; // pass back to home page
     constructor(props) {
         super(props)
-        console.log('Call page route params--------------->>>>>>>>>>>>>>>> ', props.route.params)
+        // console.log('Call page route params--------------->>>>>>>>>>>>>>>> ', props.route.params)
         this.appData = props.route.params.appData;
+        this.targetUser = props.route.params.targetUser;
         this.localViewRef = React.createRef();
         // console.log("LOCAL VIEW---->>>>",this.localViewRef);
         this.remoteViewRef = React.createRef();
@@ -132,12 +136,20 @@ export default class CallPage extends Component {
         this.token = this.appData.zegoToken;
         this.roomID = props.route.params.roomID;
         this.userID = this.appData.user.userId;
-        this.userName = this.appData.user.fullName;
+        this.userName = this.appData.user.fullName || this.appData.user.userId;
+        // console.log("userName---->>>",this.userName);
     }
     state = {
         cameraEnable: true,
         micEnable: true,
+        time: 0,
+        sec: 0,
+        min: 0,
+        hour: 0,
+        hostData: null,
+        userAvailCoin: null
     };
+
 
     componentDidMount() {
         this.grantPermissions();
@@ -155,17 +167,18 @@ export default class CallPage extends Component {
             // Join room and wait...
             this.joinRoom();
         });
-    }
+        // this._startTimer("20255941");
+    };
     componentWillUnmount() {
         ZegoExpressManager.instance().leaveRoom();
-    }
+    };
 
     registerCallback() {
         // When other user join in the same room, this method will get call
         // Read more doc: https://doc-en-api.zego.im/ReactNative/interfaces/_zegoexpresseventhandler_.zegoeventlistener.html#roomuserupdate
         ZegoExpressManager.instance().onRoomUserUpdate(
             (updateType, userList, roomID) => {
-                console.warn('out roomUserUpdate', updateType, userList, roomID);
+                console.warn('out roomUserUpdate------------->', updateType, userList, roomID);
                 if (updateType == ZegoUpdateType.Add) {
                     console.log("&&&&&&&&&", this.remoteViewRef.current, findNodeHandle(this.remoteViewRef.current))
                     userList.forEach(userID => {
@@ -174,6 +187,14 @@ export default class CallPage extends Component {
                             findNodeHandle(this.remoteViewRef.current),
                         );
                     });
+                    // this._startTimer(roomID);
+                    this.addCallHistory();
+                    if (this.userID == roomID) {
+                        this._startTimer(userList[0]);
+                    }
+                    else {
+                        this._startTimer(roomID)
+                    }
                 }
             },
         );
@@ -221,7 +242,7 @@ export default class CallPage extends Component {
                 console.warn('requestMultiple', data);
             });
         }
-    }
+    };
     // Switch camera
     enableCamera() {
         ZegoExpressManager.instance()
@@ -232,6 +253,30 @@ export default class CallPage extends Component {
                     showPreview: this.cameraEnable,
                 });
             });
+    };
+
+    async addCallHistory() {
+        const token = await AsyncStorage.getItem('token');
+        // console.log("token--->>",token);
+        const targetUser = JSON.parse(await AsyncStorage.getItem('targetUser'));
+        // console.log(targetUser);
+        let body = {
+            "userCallhistorys": [{
+                "targetId": targetUser._id
+            }]
+        };
+        axios({
+            url: localBaseurl + 'adduserCallhistory',
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${token}` },
+            data: body
+        })
+            .then(resp => {
+                console.log("add to call history-->", resp.data);
+            })
+            .catch(err => {
+                console.log("add to call history-->", err.response.data);
+            })
     };
 
     // Switch microphone
@@ -245,7 +290,7 @@ export default class CallPage extends Component {
     // Join in ZEGOCLOUD's room and wait for other.
     // While user on the same room, they can talk to each other
     async joinRoom() {
-        console.log("Join room: ", this.roomID, this.token)
+        // console.log("Join room: ", this.roomID, this.token)
         ZegoExpressManager.instance().joinRoom(this.roomID, this.token, { userID: this.userID, userName: this.userName },
             [ZegoMediaOptions.PublishLocalAudio, ZegoMediaOptions.PublishLocalVideo, ZegoMediaOptions.AutoPlayAudio, ZegoMediaOptions.AutoPlayVideo]).then(result => {
                 if (result) {
@@ -268,14 +313,92 @@ export default class CallPage extends Component {
             .leaveRoom()
             .then(async () => {
                 console.warn('Leave successful');
-                // await AsyncStorage.removeItem('appData');
-                // Back to home page
-                console.log("call page appData---------------->>>>>>>>>>>>>",this.appData);
-                this.props.navigation.navigate('BottomTabNavigation', {appData: this.appData});
+                clearInterval(this.startTimer);
+                clearInterval(this.calculateCoin);
+                this.props.navigation.navigate('BottomTabNavigation', { appData: this.appData });
             });
     };
 
+    async _startTimer(_id) {
+        this.startTimer = setInterval(() => {
+            let time = this.state.time;
+            this.setState({ time: time + 1 });
+            let sec = Number(time) % 60;
+            let min = this._getMinutes(time);
+            let hours = this._getHours(time);
+            if (sec < 10) {
+                this.setState({ sec: '0' + sec })
+            } else {
+                this.setState({ sec: sec })
+            }
+            if (min < 10) {
+                this.setState({ min: '0' + min })
+            } else if (min >= 60) {
+                let newMin = min % 60;
+                if (newMin < 10) {
+                    this.setState({ min: '0' + newMin })
+                } else {
+                    this.setState({ min: newMin })
+                }
+            } else {
+                this.setState({ min: min })
+            }
+            if (hours < 10) {
+                this.setState({ hour: '0' + hours })
+            } else {
+                this.setState({ hour: hours })
+            }
+        }, 1000);
+        this.calculateCoin = setInterval(async () => {
+            const token = await AsyncStorage.getItem('token');
+            let randomPromise = Promise.resolve(200);
+            axios.all([
+                axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get(baseurl + 'getOneUserProfile/' + _id, { headers: { Authorization: `Bearer ${token}` } }),
+                randomPromise
+            ]).then(response => {
+                let userData = response[0].data;
+                let hostData = response[1].data.getuser;
+                let userBalance = userData?.total_coins;
+                let hostFees = hostData?.hostuser_fees;
+                // let userBalance = 600;
+                // let hostFees = 60;
+                // this.setState({userAvailCoin: userBalance});
+                if(!this.state.userAvailCoin){
+                    this.setState({userAvailCoin: userBalance - hostFees});
+                } else{
+                    this.setState({userAvailCoin: this.state.userAvailCoin - hostFees});
+                }
+                // console.log(this.state.userAvailCoin);
+            }).catch(err => {
+                console.log("call page get profile--->>>", err.response.data);
+            })
+        }, 60000);
+    };
+
+    _getMinutes = (sec) => {
+        let minute = Number(sec) / 60;
+
+        if (Number(minute) === minute && minute % 1 === 0) {
+            return minute;
+        }
+        else {
+            return Math.trunc(minute);
+        }
+    };
+
+    _getHours = (sec) => {
+        let hour = Number(sec) / 3600;
+        if (Number(hour) === hour && hour % 1 === 0) {
+            return hour;
+        }
+        else {
+            return Math.trunc(hour);
+        }
+    };
+
     render() {
+        // console.log(this.state.userAvailCoin);
         return (
             <View
                 style={[
@@ -327,7 +450,33 @@ export default class CallPage extends Component {
                         /> */}
                     </TouchableOpacity>
                 </View>
+                <View style={{ position: 'absolute', alignSelf: 'center', top: 5 }}>
+                    <View style={{ flexDirection: "row", alignItems: 'flex-end' }}>
+                        {
+                            this.state.time ?
+                                <Text style={{ marginLeft: 2, color: '#fff', fontSize: 18 }}>
+                                    {this.state.hour != 0 ? this.state.hour + ':' + this.state.min + ':' + this.state.sec : this.state.min + ':' + this.state.sec}
+                                </Text>
+                                :
+                                null
+                        }
+                    </View>
+                </View>
             </View>
         );
     }
 }
+
+const options = {
+    container: {
+        backgroundColor: '#000',
+        padding: 5,
+        borderRadius: 5,
+        width: 220,
+    },
+    text: {
+        fontSize: 30,
+        color: '#FFF',
+        marginLeft: 7,
+    }
+};

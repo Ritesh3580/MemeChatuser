@@ -67,7 +67,7 @@ export default class HomePage extends Component {
   }
   constructor(props) {
     super(props);
-    console.log('Home constructor: ', props)
+    // console.log('Home constructor: ', props.route.params.appData.total_coins)
     this.appData = props.route.params.appData;
     this.currentUserID = this.appData.userID;
     this.currentUserName = this.currentUserID.toUpperCase(); // TODO user name for test only

@@ -88,9 +88,9 @@ const MessageItem = ({ avatarMap, item, messages }) => {
 
 export default function ChatRoom({ route, navigation }) {
 
-
     const currentUser = route?.params?.userData?.appData?.user;
     const targetHost = route?.params?.userData?.user;
+    // console.log(targetHost);
     const type = route?.params?.type;
     const id = route?.params?.id;
     const name = route?.params?.name;
@@ -229,17 +229,18 @@ export default function ChatRoom({ route, navigation }) {
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <AntDesign name="left" color="#000" size={24} onPress={() => { navigation.goBack() }} />
                     {
-                        targetHost?.imageUrl ?
+                        targetHost?.userImage ?
                             <View
                                 style={{
                                     height: 30,
                                     width: 30,
                                     borderRadius: 15,
-                                    marginHorizontal: 10
+                                    marginHorizontal: 10,
+                                    overflow:'hidden'
                                 }}
                             >
                                 <Image
-                                    source={{ uri: targetHost.imageUrl }}
+                                    source={{ uri: targetHost.userImage }}
                                     style={{ height: '100%', width: '100%' }}
                                 />
                             </View>
@@ -257,7 +258,7 @@ export default function ChatRoom({ route, navigation }) {
                             </View>
                     }
                     {
-                        targetHost ?
+                        targetHost && targetHost?.FirstName ?
                             <Text style={styles.name}>{targetHost?.FirstName} {targetHost?.LastName}</Text>
                             :
                             <Text style={styles.name}>{id}</Text>

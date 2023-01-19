@@ -20,24 +20,27 @@ import Colors from '../Assetst/Constants/Colors';
 import * as Animatable from 'react-native-animatable';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { baseurl, localBaseurl, token } from '../config/baseurl';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, StackActions } from '@react-navigation/native';
 import { storage } from '../store/MMKV';
 import axios from 'axios';
+
+
 const Splash = ({ navigation }) => {
   const AnimationRef = useRef(null);
 
   const page = async (e) => {
     const token = await AsyncStorage.getItem('token');
-    console.log('hiiiiii', token);
+    // console.log('hiiiiii', token);
     if (token) {
       axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } })
       .then(resp=>{
-        console.log(resp.data);
+        // console.log(resp.data);
         storage.set("user", JSON.stringify(resp.data));
-        navigation.navigate('BottomTabNavigation');
+        navigation.dispatch(StackActions.replace('BottomTabNavigation'));
       })
       .catch(err=>{
-        navigation.navigate('SignIn');
+        // navigation.navigate('SignIn');
+        navigation.dispatch(StackActions.replace('SignIn'));
         console.log("get profile error-->>", err.response?.data);
       })
       // const resp = await axios.get(localBaseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } })
@@ -57,7 +60,8 @@ const Splash = ({ navigation }) => {
       //   // console.log("get profile error-->>", resp.response?.data);
       // navigation.navigate('BottomTabNavigation');
     } else {
-      navigation.navigate('SignIn');
+      // navigation.navigate('SignIn');
+      navigation.dispatch(StackActions.replace('SignIn'));
     }
   };
 

@@ -18,7 +18,7 @@ import {
 import Colors from '../Assetst/Constants/Colors';
 import * as Animatable from 'react-native-animatable';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, StackActions} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -93,11 +93,13 @@ const LoginWithPhone = ({route, navigation}) => {
             .catch(e => {
               if (e.toString().split(' ')[6] === '422') {
                 console.log('Already registered');
-                navigation.navigate('BottomTabNavigation');
+                // navigation.navigate('BottomTabNavigation');
+                navigation.dispatch(StackActions.replace('BottomTabNavigation'));
                 // navigation.navigate('FollowNext');
               } else if (e.toString().split(' ')[6] === '409') {
                 console.log('No data found');
-                navigation.navigate('Profile');
+                navigation.dispatch(StackActions.replace('Profile'));
+                // navigation.navigate('Profile');
               }
             });
           //navigation.navigate('Profile', {tokenIdName: response.data.token});
@@ -136,7 +138,7 @@ const LoginWithPhone = ({route, navigation}) => {
               justifyContent: 'center',
               marginLeft: hp('1.3%'),
             }}
-            onPress={() => navigation.navigate('Splash')}>
+            onPress={() => navigation.goBack()}>
             <FontAwesome5 name="chevron-left" size={hp('3%')} color="black" />
           </TouchableOpacity>
         </View>
@@ -196,6 +198,7 @@ const LoginWithPhone = ({route, navigation}) => {
                 width: wp('62%'),
                 backgroundColor: '#C5D5D6',
                 height: hp('7%'),
+                color:'#000'
               }}
               maxLength={10}
               onChange={v => number(v)}
@@ -267,6 +270,7 @@ const LoginWithPhone = ({route, navigation}) => {
                 paddingLeft: wp('2%'),
                 borderTopLeftRadius: hp('1%'),
                 borderBottomLeftRadius: hp('1%'),
+                color:'#000'
               }}
               onChange={otp => getOtp(otp)}
             />

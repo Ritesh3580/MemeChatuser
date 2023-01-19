@@ -20,11 +20,9 @@ import ImagePicker from 'react-native-image-crop-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { baseurl, localBaseurl, token } from '../config/baseurl';
-const profileEditUrl =
-  localBaseurl + 'finduserallfollow/62a8197dba6594efca308cfb';
-const ProfileFriendUrl =
-  localBaseurl + 'finduserAllfriends/62a8197dba6594efca308cfb';
+
 const fillDataUrl = localBaseurl + 'showProfile';
 
 import Modal from 'react-native-modal';
@@ -32,6 +30,7 @@ import SimpleToast from 'react-native-simple-toast';
 import { useIsFocused } from '@react-navigation/native';
 
 const ProfileEdit = props => {
+
   const [switchValue, setSwitchValue] = useState(false);
   const [followers, setFollowers] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
@@ -89,15 +88,11 @@ const ProfileEdit = props => {
     });
   };
 
-  const ProfilePicSet = () => {
-    if (image) {
-      setModalVisible(false);
-    }
-  };
   const getFriends = async (id) => {
-    axios.get(localBaseurl + 'finduserAllfriends/' + id).then(res => {
-      setFriendData(res.data);
-      console.log("Friends-->>", res.data);
+    const token = await AsyncStorage.getItem('token');
+    axios.get(localBaseurl + 'finduserAllfriends',{ headers: { Authorization: `Bearer ${token}` } }).then(res => {
+      setFriendData(res.data.friendList);
+      // console.log("Friends-->>", res.data);
     })
       .catch(err => {
         console.log("get friends err-->>", err.response.data);
@@ -121,12 +116,10 @@ const ProfileEdit = props => {
     axios
       .get(fillDataUrl, { headers: { Authorization: `Bearer ${token}` } })
       .then(async res => {
-        // console.log('jidsaidfsj', res.data);
-        // setFriendData(res.data);
         setProfile(res.data);
+        // console.log(res.data.imageUrl);
         setId(res.data);
         await getFriends(res.data._id);
-        // await getFollows(res.data._id);
       })
       .catch(err => {
         console.log("show profile err-->>", err.response.data);
@@ -166,15 +159,16 @@ const ProfileEdit = props => {
       SimpleToast.show("Successfully uploaded", SimpleToast.LONG);
     } catch (error) {
       console.log('upload image errror --->>> ', error.response?.data);
-      SimpleToast.show("Sorry!, got some error...", SimpleToast.LONG);
+      SimpleToast.show("Something went wrong!", SimpleToast.LONG);
     }
   };
-  //data&&console.log(friendData)
+
+  // console.log(profile?.imageUrl);
+
 
   return (
     <SafeAreaView>
       <StatusBar backgroundColor="#ff0090" />
-
       <Modal
         isVisible={isModalVisible}
         animationOutTiming={900}
@@ -308,24 +302,40 @@ const ProfileEdit = props => {
             marginTop: hp('-10%'),
             alignItems: 'center',
             justifyContent: 'center',
-            //backgroundColor: 'purple',
+            // backgroundColor: 'purple',
           }}>
           {!userImage ?
             profile?.imageUrl ?
-            <TouchableOpacity
-              onPress={() => {
-                toggleModal();
-              }}
-              style={{
-                width: hp('16%'),
-                height: hp('16%'),
-                borderRadius: hp('2%'),
-                borderColor: '#fff',
-                borderWidth: wp('1.2%'),
-              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  toggleModal();
+                }}
+                style={{
+                  width: hp('16%'),
+                  height: hp('16%'),
+                  borderRadius: hp('2%'),
+                  borderColor: '#fff',
+                  borderWidth: wp('1.2%'),
+                  elevation: 9,
+                  overflow: 'hidden'
+                }}>
+                <View
+                  style={{
+                    width: hp('16%'),
+                    height: hp('7.6%'),
+                    backgroundColor: '#922ABE'
+                  }}
+                />
+                <View
+                  style={{
+                    width: hp('16%'),
+                    height: hp('7.6%'),
+                    backgroundColor: '#fff'
+                  }}
+                />
                 <Image
                   source={{ uri: profile?.imageUrl }}
-                  style={{ width: '100%', height: '100%', borderRadius: 10 }}
+                  style={{ width: '100%', height: '100%', borderRadius: 10, position:'absolute' }}
                 />
               </TouchableOpacity>
               :
@@ -399,7 +409,7 @@ const ProfileEdit = props => {
               {profile && profile.fullName}
             </Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate('exc')}
+              onPress={() => props.navigation.navigate('exc')}
               style={{
                 width: wp('7%'),
                 height: hp('3%'),
@@ -436,7 +446,7 @@ const ProfileEdit = props => {
               }}>
               {id && id.userId}
             </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => Clipboard.setString(id && id.userId)}>
               <View
                 style={{
                   width: wp('12%'),
@@ -470,7 +480,7 @@ const ProfileEdit = props => {
             alignItems: 'center',
             marginTop: hp('1%'),
           }}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => props.navigation.navigate('FollowsFollowers')}>
             <View
               style={{
                 width: wp('34%'),
@@ -491,7 +501,7 @@ const ProfileEdit = props => {
               </Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => props.navigation.navigate('FollowsFollowers')}>
             <View
               style={{
                 width: wp('34%'),
@@ -521,8 +531,9 @@ const ProfileEdit = props => {
               height: hp('8%'),
               flexDirection: 'row',
               alignItems: 'center',
-              alignSelf: 'center',
+              // alignSelf: 'center',
               marginTop: hp('2%'),
+              justifyContent: 'space-between'
             }}>
             <Image
               source={require('../Assetst/Images/Group12.png')}
@@ -565,23 +576,24 @@ const ProfileEdit = props => {
                 justifyContent: 'flex-end',
                 alignItems: 'flex-end',
                 paddingRight: wp('1%'),
-                flexDirection: 'row',
+                // flexDirection: 'row',
               }}>
               <View
                 style={{
                   alignItems: 'center',
                   width: wp('25%'),
                   height: hp('5%'),
-                  justifyContent: 'center',
-                  flexDirection: 'row',
+                  // justifyContent: 'center',
+                  // flexDirection: 'row',
                 }}>
                 <TouchableOpacity
                   style={{
                     height: hp('5%'),
-                    justifyContent: 'center',
-                    width: wp('25%'),
-                    alignItems: 'flex-end',
+                    // justifyContent: 'center',
+                    // width: wp('25%'),
+                    // alignItems: 'flex-end',
                     flexDirection: 'row',
+                    // backgroundColor:'gray'
                   }}
                   onPress={() => props.navigation.navigate('MyWallet', profile)}>
                   <View
@@ -589,7 +601,7 @@ const ProfileEdit = props => {
                       alignItems: 'center',
                       width: wp('20%'),
                       height: hp('5%'),
-                      justifyContent: 'center',
+                      justifyContent: 'flex-end',
                       flexDirection: 'row',
                     }}>
                     <Image
@@ -692,7 +704,7 @@ const ProfileEdit = props => {
             </View>
           </View>
 
-          <View
+          {/* <View
             style={{
               width: wp('97%'),
               height: hp('8%'),
@@ -756,7 +768,7 @@ const ProfileEdit = props => {
                 />
               </TouchableOpacity>
             </View>
-          </View>
+          </View> */}
         </View>
       </View>
     </SafeAreaView>

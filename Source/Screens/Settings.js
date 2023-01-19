@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Switch,
+  Linking,
 } from 'react-native';
 import React, {useState} from 'react';
 import {
@@ -14,12 +15,13 @@ import {
 } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Modal from 'react-native-modal';
-import Splash from './Splash';
 import axios from 'axios';
-import {baseurl, localBaseurl, token} from '../config/baseurl';
+import {applyAsHostURL, localBaseurl} from '../config/baseurl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storage } from '../store/MMKV';
 import { useZIM } from '../hooks/zim';
+import packageJson from '../../package.json';
+import { StackActions } from '@react-navigation/native';
 const logoutApi = localBaseurl + 'signout';
 
 const Setting = ({navigation}) => {
@@ -29,7 +31,6 @@ const Setting = ({navigation}) => {
   const [switchValue3, setSwitchValue3] = useState(false);
   const [data, setData] = useState('');
   const [{ callID }, zimAction] = useZIM();
-
   
   const toggleSwitch = value => {
     setSwitchValue(value);
@@ -63,17 +64,16 @@ const Setting = ({navigation}) => {
   };
 
   const api = () => {
-    alert('LogOut successfully');
+    // alert('LogOut successfully');
     axios
       .get(logoutApi)
-
       .then(async res => {
-        // console.log('mai ni kr rahi logout');
         setData(res.data.message);
         await AsyncStorage.removeItem('token');
         zimAction.logout();
         storage.clearAll();
-        navigation.navigate('SignIn');
+        // navigation.navigate('SignIn');
+        navigation.dispatch(StackActions.replace('SignIn'));
       });
   };
 
@@ -110,7 +110,7 @@ const Setting = ({navigation}) => {
           <View style={{width: wp('33%'), height: hp('4%')}}></View>
         </View>
 
-        <View
+        {/* <View
           style={{
             width: wp('100%'),
             height: hp('7%'),
@@ -148,9 +148,9 @@ const Setting = ({navigation}) => {
               value={switchValue}
             />
           </View>
-        </View>
+        </View> */}
 
-        <View
+        {/* <View
           style={{
             width: wp('100%'),
             height: hp('7%'),
@@ -188,9 +188,9 @@ const Setting = ({navigation}) => {
               value={switchValue1}
             />
           </View>
-        </View>
+        </View> */}
 
-        <View
+        {/* <View
           style={{
             width: wp('100%'),
             height: hp('7%'),
@@ -228,9 +228,9 @@ const Setting = ({navigation}) => {
               value={switchValue2}
             />
           </View>
-        </View>
+        </View> */}
 
-        <View
+        {/* <View
           style={{
             width: wp('100%'),
             height: hp('7%'),
@@ -268,7 +268,7 @@ const Setting = ({navigation}) => {
               value={switchValue3}
             />
           </View>
-        </View>
+        </View> */}
         <TouchableOpacity onPress={() => navigation.navigate('BlockList')}>
           <View
             style={{
@@ -301,19 +301,20 @@ const Setting = ({navigation}) => {
                 alignItems: 'flex-end',
                 paddingRight: wp('2.5%'),
               }}>
-              <TouchableOpacity
+                <Ionicons
+                  name="md-chevron-forward"
+                  size={hp('3.2%')}
+                  color="#000"
+                />
+              {/* <TouchableOpacity
                 style={{
                   height: hp('4%'),
                   justifyContent: 'center',
                   paddingLeft: wp('4%'),
                 }}
                 onPress={() => navigation.navigate('BlockList')}>
-                <Ionicons
-                  name="md-chevron-forward"
-                  size={hp('3.2%')}
-                  color="#000"
-                />
-              </TouchableOpacity>
+                
+              </TouchableOpacity> */}
             </View>
           </View>
         </TouchableOpacity>
@@ -367,7 +368,7 @@ const Setting = ({navigation}) => {
           </View>
         </TouchableOpacity> */}
 
-        <TouchableOpacity onPress={() => navigation.navigate('Language')}>
+        <TouchableOpacity onPress={() => Linking.openURL(applyAsHostURL)}>
           <View
             style={{
               width: wp('100%'),
@@ -399,7 +400,12 @@ const Setting = ({navigation}) => {
                 alignItems: 'flex-end',
                 paddingRight: wp('2.5%'),
               }}>
-              <TouchableOpacity
+                <Ionicons
+                  name="md-chevron-forward"
+                  size={hp('3.2%')}
+                  color="#000"
+                />
+              {/* <TouchableOpacity
                 style={{
                   height: hp('4%'),
                   justifyContent: 'center',
@@ -411,7 +417,7 @@ const Setting = ({navigation}) => {
                   size={hp('3.2%')}
                   color="#000"
                 />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
         </TouchableOpacity>
@@ -448,7 +454,12 @@ const Setting = ({navigation}) => {
                 alignItems: 'flex-end',
                 paddingRight: wp('2.5%'),
               }}>
-              <TouchableOpacity
+                <Ionicons
+                  name="md-chevron-forward"
+                  size={hp('3.2%')}
+                  color="#000"
+                />
+              {/* <TouchableOpacity
                 style={{
                   height: hp('4%'),
                   justifyContent: 'center',
@@ -460,7 +471,7 @@ const Setting = ({navigation}) => {
                   size={hp('3.2%')}
                   color="#000"
                 />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
         </TouchableOpacity>
@@ -513,6 +524,60 @@ const Setting = ({navigation}) => {
           </View>
         </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => navigation.navigate('Delete')}>
+          <View
+            style={{
+              width: wp('100%'),
+              height: hp('7%'),
+              justifyContent: 'space-between',
+              flexDirection: 'row',
+              alignItems: 'center',
+              borderBottomColor: '#C5D5D6',
+              borderBottomWidth: hp('0.1%'),
+            }}>
+            <View
+              style={{
+                height: hp('5%'),
+                width: wp('45%'),
+                justifyContent: 'center',
+                paddingLeft: wp('4%'),
+              }}>
+              <Text
+                style={{fontSize: hp('2%'), color: '#000', fontWeight: 'bold'}}>
+                Delete Account
+              </Text>
+            </View>
+
+            <View
+              style={{
+                height: hp('5%'),
+                width: wp('45%'),
+                justifyContent: 'center',
+                alignItems: 'flex-end',
+                paddingRight: wp('2.5%'),
+              }}>
+                <Ionicons
+                  name="md-chevron-forward"
+                  size={hp('3.2%')}
+                  color="#000"
+                />
+              {/* <TouchableOpacity
+                style={{
+                  height: hp('4%'),
+                  justifyContent: 'center',
+                  paddingLeft: wp('4%'),
+                }}
+                onPress={() => navigation.navigate('Feedback')}>
+                <Ionicons
+                  name="md-chevron-forward"
+                  size={hp('3.2%')}
+                  color="#000"
+                />
+              </TouchableOpacity> */}
+            </View>
+          </View>
+        </TouchableOpacity>
+
         <View
           style={{
             width: wp('100%'),
@@ -545,10 +610,10 @@ const Setting = ({navigation}) => {
             <Text
               style={{
                 fontSize: hp('2%'),
-                color: '#C5D5D6',
+                color: '#aaa',
                 fontWeight: 'normal',
               }}>
-              1.0.10
+              {packageJson.version}
             </Text>
           </View>
         </View>

@@ -16,21 +16,25 @@ import {
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Searchbar } from 'react-native-paper';
+// import { Searchbar } from 'react-native-paper';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import Entypo from 'react-native-vector-icons/Entypo';
 import Colors from '../Assetst/Constants/Colors';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { SliderBox } from 'react-native-image-slider-box';
-import Discover from '../Screens/Discover';
-import NearBy from '../Screens/Nearby';
+// import Discover from '../Screens/Discover';
+// import NearBy from '../Screens/Nearby';
 import { baseurl, localBaseurl } from '../config/baseurl';
 import { storage } from '../store/MMKV';
 import { zego_config } from '../config/ZegoConfig';
 import { useState } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { useZIM } from '../hooks/zim';
+import Modal from 'react-native-modal';
+import SimpleToast from 'react-native-simple-toast';
+
 //import { ScrollView } from 'react-native-gesture-handler';
 
 const findAllHost = baseurl + 'findHostuser';
@@ -43,31 +47,37 @@ const ScrollBanner = [
 export default function Home(props) {
 
   const [data, setData] = useState([]);
+  const [banner, setBanner] = useState([]);
+  const [blockedHostId, setBlockedHostId] = useState([]);
+  const [userData, setUserData] = useState(null);
+  const [myModal, setMyModal] = useState(false);
   const appData = props.route.params.appData;
   const isFocused = useIsFocused();
 
   const [{ callID }, zimAction] = useZIM();
 
-
-  if (props.route.params.roomID) {
-    handleIncomingCall(props.route.params.roomID);
-  };
-
-  useEffect(()=>{
+  useEffect(() => {
     zimAction.initEvent();
     zimAction.login({ userID: appData?.user?.userId, userName: appData?.user?.fullName }).then(() => {
       // navigation.push('Home');
       console.log("ZIM LOGIN SUCCESS");
-      zimAction.updateUserInfo(appData?.user?.fullName,appData?.user?.imageUrl);
+      zimAction.updateUserInfo(appData?.user?.fullName, appData?.user?.imageUrl);
       // zimAction.queryUsersInfo(['69899928']);
     })
-  },[]);
+    if (props.route.params.roomID) {
+      handleIncomingCall(props.route.params.roomID);
+    };
+  }, []);
 
   useEffect(() => {
     if (isFocused) {
       userProfile();
     }
   }, [isFocused]);
+
+  const toggleMyMobile = () => {
+    setMyModal(!myModal);
+  };
 
   function handleIncomingCall(roomID) {
     jumpToCallPage(roomID);
@@ -77,32 +87,73 @@ export default function Home(props) {
   async function userProfile() {
     const token = await AsyncStorage.getItem('token');
     // console.log(token);
-    axios
-      .get(localBaseurl + 'findHostuser', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(async res => {
-        // console.log("ALL USERS---->>>>>>", res.data);
-        setData(res.data)
-        storage.set('AllHost', JSON.stringify(res.data));
+    let bannerArr = [];
+    let randomPromise = Promise.resolve(200);
+    let user_URL = localBaseurl + 'showProfile';
+    let host_user_URL = localBaseurl + 'findHostuser';
+    let banner_URL = localBaseurl + 'userfindBanner';
+    axios.all([
+      axios.get(user_URL, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(host_user_URL, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(banner_URL, { headers: { Authorization: `Bearer ${token}` } }),
+      randomPromise
+    ])
+      .then((responses) => {
+        // console.log("ok1");
+        let HostArr = [];
+        setUserData(responses[0].data);
+        // setData(responses[1].data);
+        storage.set('AllHost', JSON.stringify(responses[1].data));
+        responses[2].data.findBanner.map(item => {
+          bannerArr.push(item.imageUrl);
+        });
+        setBanner(bannerArr);
+        responses[0].data.block?.map(item => HostArr.push(item._id));
+        if (HostArr.length > 0) {
+          HostArr.map(item => {
+            const filter = responses[1].data.filter(_item => item !== _item._id);
+            setData(filter);
+          })
+        }
+        else {
+          setData(responses[1].data);
+        }
       })
       .catch(err => {
-        console.log('All user error---->>>>', err);
+        console.log('axios all promise error---->>>>', err);
+        SimpleToast.show("Something error occured!", SimpleToast.LONG);
       });
   };
 
-  function startCall(targetUserID) {
-    if (targetUserID == '') {
+  async function startCall(targetUser) {
+    const token = await AsyncStorage.getItem('token');
+    if (targetUser?.userId == '') {
       console.warn('Invalid user id');
       return;
-    }
-    // TODO the caller use he/her own user id to join room, for test only
-    jumpToCallPage(appData?.user?.userId);
-    sendCallInvite({
-      roomID: appData?.user?.userId,
-      user: appData.user,
-      targetUserID: targetUserID,
-    });
+    };
+    let randomPromise = Promise.resolve(200);
+
+    axios.all([
+      axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(baseurl + 'getOneUserProfile/'+targetUser.userId, { headers: { Authorization: `Bearer ${token}` } }),
+      randomPromise
+    ]).then(responses => {
+      if (responses[0]?.data?.total_coins < responses[1]?.data?.getuser?.hostuser_fees) {
+        console.log("insufficient coin");
+        toggleMyMobile();
+        return;
+      }
+      jumpToCallPage(appData?.user?.userId);
+      sendCallInvite({
+        roomID: responses[0]?.data?.userId,
+        user: responses[0].data,
+        targetUserID: targetUser.userId,
+      });
+    })
+      .catch(err => {
+        SimpleToast.show("Server down!");
+        console.log("get user during video call-->", err.response.data);
+      })
   };
 
   async function sendCallInvite(data) {
@@ -116,7 +167,7 @@ export default function Home(props) {
         callerIconUrl: 'user_image',
         roomID: data.roomID,
         callType: 'Video', // TODO For test only
-        role: 1
+        role: "1"
       }),
     };
     // console.log(requestOptions.body);
@@ -127,10 +178,10 @@ export default function Home(props) {
     console.log('Send call invite reps: ', reps);
   };
 
-  function jumpToCallPage(roomID) {
+  async function jumpToCallPage(roomID) {
     props.navigation.navigate('CallPage', {
       appData: appData,
-      roomID: roomID,
+      roomID: roomID
     });
   };
 
@@ -182,7 +233,7 @@ export default function Home(props) {
               />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => props.navigation.navigate('SearchPerson')}>
+              onPress={() => props.navigation.navigate('SearchPerson', { host: data, appData: appData, roomID: props.route?.params?.roomID })}>
               <FontAwesome5Icon
                 name="search"
                 size={hp('2.5%')}
@@ -191,41 +242,53 @@ export default function Home(props) {
             </TouchableOpacity>
           </View>
         </View>
-        <ScrollView>
-          <View
-            style={{
-              width: wp('100%'),
-              height: hp('10%'),
-              alignSelf: 'center',
-              //marginTop: hp('0.5%'),
-              // alignItems: 'center',
-              justifyContent: 'center',
-              //backgroundColor: 'green',
-            }}>
-            <SliderBox
-              style={styles.imgSlider}
-              images={ScrollBanner}
-              autoplay={true}
-              autoPlayWithInterval={500}
-              circleLoop={true}
-              //inactiveDotColor={false}
-              inactiveDotColor="#90A4AE"
-              dotStyle={{
-                width: 10,
-                height: 9,
-                borderRadius: 10,
-              }}
-            />
-          </View>
-          <FlatList
-            showsVerticalScrollIndicator={false}
-            keyExtractor={(item, index) => index}
-            data={data}
-            numColumns={2}
-            contentContainerStyle={{ paddingBottom: 100 }}
-            renderItem={({ item, index }) => (
+        <View
+          style={{
+            width: wp('100%'),
+            height: hp('10%'),
+            alignSelf: 'center',
+            //marginTop: hp('0.5%'),
+            // alignItems: 'center',
+            justifyContent: 'center',
+            //backgroundColor: 'green',
+            borderWidth: 1,
+            borderColor: Colors.gray
+          }}>
+          {
+            banner?.length === 0 ?
+              <>
+                <Text style={{ color: Colors.gray, textAlign: 'center', fontWeight: '600' }}>No image available!</Text>
+              </>
+              :
+              <SliderBox
+                style={styles.imgSlider}
+                images={banner}
+                autoplay={true}
+                autoPlayWithInterval={500}
+                circleLoop={true}
+                //inactiveDotColor={false}
+                inactiveDotColor="#90A4AE"
+                dotStyle={{
+                  width: 10,
+                  height: 9,
+                  borderRadius: 10,
+                }}
+                resizeMode='stretch'
+              />
+          }
+        </View>
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          keyExtractor={(item, index) => index}
+          data={data}
+          numColumns={2}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          renderItem={({ item, index }) => {
+            // if (blockedHostId.includes(item._id)) {
+            //   return null;
+            // }
+            return (
               <View
-                key={index}
                 style={{
                   width: wp('50%'),
                   height: hp('30.5%'),
@@ -234,21 +297,15 @@ export default function Home(props) {
                   justifyContent: 'space-around',
                   alignItems: 'center',
                   paddingHorizontal: wp('0.8%'),
-                  // marginTop: hp('1%'),
-                  //backgroundColor:'skyblue',
-                  //marginHorizontal:2
                 }}>
                 <TouchableOpacity
                   style={{
                     width: wp('49%'),
                     height: hp('29.8%'),
-                    //backgroundColor: Colors.lightGray,
                     justifyContent: 'center',
                     borderRadius: hp('2%'),
                     borderWidth: 2,
                     alignItems: 'center',
-                    //paddingHorizontal:wp('1%')
-                    // paddingLeft:2
                     marginTop: hp('1%'),
                   }}
                   onPress={() => {
@@ -259,9 +316,9 @@ export default function Home(props) {
                     };
                     props.navigation.navigate('ProfileDetails', navData);
                   }}>
-                  {item.imageUrl ? (
+                  {item.userImage ? (
                     <ImageBackground
-                      source={{ uri: item.imageUrl }}
+                      source={{ uri: item.userImage }}
                       resizeMode="cover"
                       style={{ width: wp('49%'), height: hp('29.8%') }}
                       imageStyle={{
@@ -276,7 +333,7 @@ export default function Home(props) {
                           justifyContent: 'center',
                           padding: wp('2%'),
                         }}>
-                        <TouchableOpacity
+                        {/* <TouchableOpacity
                           style={{
                             width: wp('10%'),
                             height: hp('2%'),
@@ -292,7 +349,7 @@ export default function Home(props) {
                             }}>
                             online
                           </Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                       </View>
                       <View
                         style={{
@@ -321,7 +378,7 @@ export default function Home(props) {
                                 color: Colors.black,
                                 //alignItems:'center'
                               }}>
-                              {item.fullName}
+                              {item.FirstName}
                             </Text>
                             {/* <Text
                                 style={{
@@ -357,8 +414,10 @@ export default function Home(props) {
                             justifyContent: 'center',
                           }}>
                           <TouchableOpacity
-                            onPress={() => {
-                              startCall(item.userId);
+                            onPress={async () => {
+                              // await setTargetUser(item);
+                              await AsyncStorage.setItem('targetUser', JSON.stringify(item));
+                              startCall(item);
                             }}
                             style={{
                               width: hp('5%'),
@@ -380,7 +439,7 @@ export default function Home(props) {
                     </ImageBackground>
                   ) : (
                     <ImageBackground
-                      source={{ uri: item.imageUrl }}
+                      source={{ uri: item.userImage }}
                       resizeMode="cover"
                       style={{ width: wp('49%'), height: hp('29.8%') }}
                       imageStyle={{
@@ -395,7 +454,7 @@ export default function Home(props) {
                           justifyContent: 'center',
                           padding: wp('2%'),
                         }}>
-                        <TouchableOpacity
+                        {/* <TouchableOpacity
                           style={{
                             width: wp('10%'),
                             height: hp('2%'),
@@ -411,7 +470,7 @@ export default function Home(props) {
                             }}>
                             online
                           </Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                       </View>
                       <View
                         style={{
@@ -476,8 +535,9 @@ export default function Home(props) {
                             justifyContent: 'center',
                           }}>
                           <TouchableOpacity
-                            onPress={() => {
-                              startCall(item.userId);
+                            onPress={async () => {
+                              await AsyncStorage.setItem('targetUser', JSON.stringify(item));
+                              startCall(item);
                             }}
                             style={{
                               width: hp('5%'),
@@ -500,9 +560,162 @@ export default function Home(props) {
                   )}
                 </TouchableOpacity>
               </View>
-            )}
-          />
-        </ScrollView>
+            )
+          }}
+        />
+        <View style={{ bottom: 0 }}>
+          <Modal
+            isVisible={myModal}
+            animationIn="slideInLeft"
+            animationOut="slideOutRight"
+            // animationOutTiming={500}
+            // animationInTiming={500}
+            hideModalContentWhileAnimating={true}
+            useNativeDriverForBackdrop={true}
+            onBackdropPress={() => setMyModal(false)}
+            onSwipeComplete={() => setMyModal(false)}
+            swipeDirection={['down']}
+            avoidKeyboard={true}
+            useNativeDriver={true}
+            style={{
+              width: wp('100%'),
+              alignSelf: 'center',
+              height: hp('100%'),
+            }}>
+            <View
+              style={{
+                width: wp('65%'),
+                height: hp('45%'),
+                backgroundColor: 'white',
+                borderRadius: hp('1.8%'),
+                alignSelf: 'center',
+              }}>
+              <View
+                style={{
+                  width: wp('60%'),
+                  height: hp('4%'),
+                  alignSelf: 'center',
+                  alignItems: 'flex-end',
+                  marginTop: hp('0.5%'),
+                }}>
+                <TouchableOpacity
+                  onPress={() => setMyModal(false)}
+                  style={{
+                    width: wp('8%'),
+                    height: hp('4%'),
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Entypo
+                    name="circle-with-cross"
+                    size={hp('3.6%')}
+                    color="#949894"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View
+                style={{
+                  height: 90,
+                  width: 90,
+                  borderRadius: 45,
+                  alignSelf: 'center',
+                  marginTop: '0.5%',
+                  // justifyContent: 'center',
+                  // alignItems: 'center',
+                  overflow: 'hidden',
+                  elevation: 9,
+                  backgroundColor: '#fff',
+                }}>
+                <Image
+                  source={{ uri: userData?.imageUrl }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                  }}
+                />
+              </View>
+              <Text
+                style={{
+                  color: '#949894',
+                  fontWeight: 'bold',
+                  fontSize: hp('2.2%'),
+                  marginTop: hp('1.5%'),
+                  textAlign: 'center',
+                }}>
+                Your Balance
+              </Text>
+              <View
+                style={{
+                  alignItems: 'center',
+                  // width: wp('18%'),
+                  height: hp('5%'),
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  alignSelf: 'center',
+                }}>
+                <Image
+                  source={require('../Assetst/Images/coins.png')}
+                  style={{ width: hp('2.8%'), height: hp('2.8%') }}
+                />
+                <Text
+                  style={{
+                    fontSize: hp('2%'),
+                    color: '#FDBF00',
+                    fontWeight: 'bold',
+                    marginLeft: wp('1%'),
+                  }}>
+                  {userData?.total_coins} coins
+                </Text>
+              </View>
+
+              <Text
+                style={{
+                  color: '#949894',
+                  fontWeight: 'bold',
+                  fontSize: hp('1.5%'),
+                  marginTop: hp('1%'),
+                  textAlign: 'center',
+                  // marginHorizontal:10
+                }}
+              >
+                For Safe private calls,you will be charged
+              </Text>
+              <Text
+                style={{
+                  color: '#949894',
+                  fontWeight: 'bold',
+                  fontSize: hp('1.5%'),
+                  textAlign: 'center',
+                  // marginHorizontal:10
+                }}
+              >
+                {userData?.hostuser_fees} coins per minute
+              </Text>
+              <TouchableOpacity
+                onPress={() => props.navigation.navigate('MyWallet', userData)}
+                style={{
+                  height: hp('5%'),
+                  width: wp('45%'),
+                  backgroundColor: 'white',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderRadius: hp('3%'),
+                  alignSelf: 'center',
+                  borderColor: '#b15eff',
+                  marginTop: hp('2%'),
+
+                  borderWidth: hp('0.2%'),
+                }}>
+                <Text style={{
+                  fontSize: hp('2%'),
+                  fontWeight: 'bold',
+                  color: '#000'
+                }}>Get coins</Text>
+              </TouchableOpacity>
+            </View>
+          </Modal>
+        </View>
       </View>
     </SafeAreaView>
   );

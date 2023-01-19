@@ -8,6 +8,8 @@ import {
   Image,
   ScrollView,
   FlatList,
+  Linking,
+  Platform,
 } from 'react-native';
 import React, { useState } from 'react';
 import {
@@ -26,6 +28,7 @@ import { _makeid } from '../ReusableComponent/U_ID';
 import { PAYEE_NAME, VPA } from '../config/PaymentInfo';
 import SimpleToast from 'react-native-simple-toast';
 import { useIsFocused } from '@react-navigation/native';
+import Colors from '../Assetst/Constants/Colors';
 
 const MyWallet = props => {
 
@@ -34,6 +37,7 @@ const MyWallet = props => {
 
   const [coinsData, setCoinsData] = useState([]);
   const [coinsItemObj, setCoinsItemObj] = useState(null);
+  const [customerCareNumber, setCustomerCareNumber] = useState('');
   const isFocused = useIsFocused();
 
   useEffect(() => {
@@ -52,6 +56,14 @@ const MyWallet = props => {
       })
       .catch(err => {
         console.log("get coin price error", err.response?.data);
+      })
+    axios.get(localBaseurl + 'userGethelpline', { headers: { Authorization: `Bearer ${token}` } })
+      .then(resp => {
+        // console.log(resp.data);
+        setCustomerCareNumber(resp.data.getNumber[0]?.number);
+      })
+      .catch(err => {
+        console.log("contact no-->>>", err.response?.data);
       })
   };
 
@@ -115,6 +127,21 @@ const MyWallet = props => {
       SimpleToast.show("Payment is failed", SimpleToast.LONG)
     }
   };
+
+  const _openDialer = () => {
+    if(!customerCareNumber){
+      return;
+    }
+    let number = '';
+    if (Platform.OS === 'ios') {
+      number = `telprompt:${customerCareNumber}`;
+    } else {
+      number = `tel:${customerCareNumber}`;
+    }
+    Linking.openURL(number);
+  };
+
+  // console.log(preData);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -206,7 +233,7 @@ const MyWallet = props => {
                     fontWeight: 'bold',
                     marginLeft: wp('1%'),
                   }}>
-                  {preData.coins || 0}
+                  {preData?.total_coins || 0}
                 </Text>
               </View>
             </View>
@@ -356,6 +383,7 @@ const MyWallet = props => {
         </Text>
 
         <TouchableOpacity
+        onPress={_openDialer}
           style={{
             flexDirection: 'row',
             alignSelf: 'center',
@@ -375,6 +403,7 @@ const MyWallet = props => {
             Customer Services.
           </Text>
         </TouchableOpacity>
+        
       </View>
     </SafeAreaView>
   );

@@ -120,14 +120,14 @@ const Messages = props => {
 
   const intoChat = (item) => {
     const pressedHostData = hostData?.find(host=> host.userId == item.senderUserID);
-    console.log(pressedHostData);
+    // console.log(pressedHostData);
     props.route.params['user'] = pressedHostData;
       // console.log(props.route.params);
     const convInfo = {
       userData: props.route.params,
       id: item.conversationID,
       type: item.type,
-      name: item.conversationName,
+      name: item.conversationName
     };
     zimAction.clearConversationUnreadMessageCount(convInfo.id, convInfo.type).then(() => {
       props.navigation.navigate('ChatRoom', convInfo);
@@ -143,7 +143,6 @@ const Messages = props => {
       accessoryRight={<RightBox notify={item.notificationStatus} text={item.lastMessage && timestampToTime(item.lastMessage.timestamp) || ''} />}
     />
   );
-  console.log('convs', state.convs);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -154,7 +153,6 @@ const Messages = props => {
             style={{
               width: wp('33%'),
               height: hp('4%'),
-              //backgroundColor: 'green',
             }}>
             <TouchableOpacity
               onPress={() => props.navigation.goBack()}
@@ -333,7 +331,6 @@ const styles = StyleSheet.create({
     width: wp('100%'),
     alignSelf: 'center',
     flexDirection: 'row',
-    //justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: 'green',
     position: 'relative',

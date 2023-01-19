@@ -1,5 +1,5 @@
 import React, { Component, useEffect } from 'react';
-import StyleSheet, { PermissionsAndroid, Platform } from 'react-native';
+import StyleSheet, { Alert, PermissionsAndroid, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNavigationContainerRef, getFocusedRouteNameFromRoute, StackActions } from '@react-navigation/native';
@@ -25,13 +25,16 @@ import { zego_config } from '../config/ZegoConfig';
 import notifee, { AuthorizationStatus, EventType, AndroidImportance, AndroidVisibility } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator } from 'react-native-paper';
-import Discover from '../Screens/Discover';
-import ChatRoom  from '../Screens/ChatRoom';
+import PushNotification from "react-native-push-notification";
+import ChatRoom from '../Screens/ChatRoom';
 import ZIM from 'zego-zim-react-native';
 import { useZIM } from '../hooks/zim';
-
-// ZIM.create({ appID: Number(zego_config.appID), appSign: zego_config.appSign });
-// const zim = ZIM.getInstance();
+import Setting from '../Screens/Settings';
+import MyWallet from '../Screens/MyWallet';
+import BlockList from '../Screens/BlockList';
+import { FollowsFollowers } from './TopTabNavigation.js';
+import TopWeekly from '../Screens/TopWeekly';
+import BackgroundTimer from 'react-native-background-timer';
 
 
 notifee.createChannel({
@@ -48,6 +51,11 @@ notifee.createChannel({
   sound: 'call_invite',
 });
 
+PushNotification.createChannel({
+  channelId: "missedCall",
+  channelName: "Missed Call"
+});
+
 //\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ Code for APP been killed \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 
 // Store the RoomID in global section while the APP has been killed. 
@@ -56,51 +64,62 @@ var killedIncomingCallRoomId = '';
 
 // Display a message while APP has been killed, trigger by FCM
 async function onBackgroundMessageReceived(message) {
-  // invokeApp();
-  console.log("Message---->>>>>: ", message, message.data.callerUserName);
-  killedIncomingCallRoomId = message.data.roomID;
-  notifee.displayNotification({
-    title: '<p style="color: #4caf50;"><b>' + '📞 ' + message.data.callerUserName + ' incoming call..' + '</span></p></b></p>',
-    body: 'Tap to view contact.',
-    data: { "roomID": message.data.roomID, "callType": message.data.callType },
-    android: {
-      channelId: 'callinvite',
-      largeIcon: message.data.callerIconUrl,
-      // Launch the app on lock screen
-      fullScreenAction: {
-        // For Android Activity other than the default:
-        id: 'full_screen_body_press',
-        launchActivity: 'default',
-      },
-      pressAction: {
-        id: 'body_press',
-        launchActivity: 'default',
-      },
-      actions: [
-        {
-          title: 'Denied',
-          //   icon: 'https://my-cdn.com/icons/snooze.png',
-          pressAction: {
-            id: 'denied',
-          },
+  console.log("Message---->>>>>: ", message);
+  if (message.data?.roomID) {
+    killedIncomingCallRoomId = message.data.roomID;
+    notifee.displayNotification({
+      title: '<p style="color: #4caf50;"><b>' + '📞 ' + message.data.callerUserName + ' incoming call..' + '</span></p></b></p>',
+      body: 'Tap to view contact.',
+      data: { "roomID": message.data.roomID, "callType": message.data.callType },
+      android: {
+        channelId: 'callinvite',
+        largeIcon: message.data.callerIconUrl,
+        // Launch the app on lock screen
+        fullScreenAction: {
+          // For Android Activity other than the default:
+          id: 'full_screen_body_press',
+          launchActivity: 'default',
         },
-        {
-          title: 'Accept',
-          //   icon: 'https://my-cdn.com/icons/snooze.png',
-          pressAction: {
-            id: 'accept',
-            launchActivity: 'default',
-          },
+        pressAction: {
+          id: 'body_press',
+          launchActivity: 'default',
         },
-      ],
-    },
-  });
-  console.log('Show completed.')
+        actions: [
+          {
+            title: 'Denied',
+            //   icon: 'https://my-cdn.com/icons/snooze.png',
+            pressAction: {
+              id: 'denied',
+            },
+          },
+          {
+            title: 'Accept',
+            //   icon: 'https://my-cdn.com/icons/snooze.png',
+            pressAction: {
+              id: 'accept',
+              launchActivity: 'default',
+            },
+          },
+        ],
+      },
+    });
+    console.log('Show completed.');
+    BackgroundTimer.setTimeout(async()=>{
+      await notifee.cancelAllNotifications();
+        PushNotification.localNotification({
+          channelId: "missedCall",
+          title: `Missed Call`,
+          message: `You have a missed call from ${message?.data?.callerUserName || message?.data?.roomID || '_unknown_'}`,
+          bigText: ``
+        });
+    },30000);
+  }
+  else {
+    console.log("admin background notification");
+  }
 }
 // Handle message while APP has been killed
 messaging().setBackgroundMessageHandler(onBackgroundMessageReceived);
-
-
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -114,33 +133,23 @@ class BottomTabNavigation extends Component {
     user: null,
     zegoToken: '',
     fcmToken: '',
-    // appData: null
+    isIncomingCall: false,
+    messageData: null
   };
 
 
   componentDidMount() {
     this.onAppBootstrap();
-  }
+  };
 
   componentWillUnmount() {
     this.messageListener;
-  }
+  };
 
   handleIncomingCall(roomID) {
     console.log('Navigate to home with incoming call..........');
-    // const userStr = storage.getString('user');
-    // // console.log("USER STRING FROM STORAGE---->>>>", userStr);
-    // const user = JSON.parse(userStr);
-    // const zegoToken = storage.getString('zegoToken');
-    // var appData = {
-    //   appID: zego_config.appID,
-    //   serverUrl: zego_config.serverUrl,
-    //   user: user,
-    //   zegoToken: zegoToken,
-    // };
-    // console.log("INCOMMING CALL APPDATA------------------------>>>>>>>>",appData);
-    pushToScreen('Home', { 'roomID': roomID })
-  }
+    pushToScreen('Home', { 'roomID': roomID });
+  };
 
   async grantPermissions() {
     // Android: Dynamically obtaining device permissions
@@ -173,7 +182,7 @@ class BottomTabNavigation extends Component {
         console.warn('requestMultiple', data);
       });
     }
-  }
+  };
 
   async onAppBootstrap() {
     await this.checkPermission();
@@ -186,7 +195,7 @@ class BottomTabNavigation extends Component {
     if (killedIncomingCallRoomId != '') {
       this.handleIncomingCall(killedIncomingCallRoomId);
     }
-  }
+  };
 
   async checkPermission() {
     // For android
@@ -318,36 +327,38 @@ class BottomTabNavigation extends Component {
     const reps = await fetch(`${zego_config.serverUrl}/store_fcm_token`, requestOptions);
     console.log('Store fcm token reps success ');
     await this.updateZegoToken();
-  }
+  };
 
   async updateFcmToken() {
     // Register the device with FCM
     await messaging().registerDeviceForRemoteMessages();
-
     // Get the token
     const token = await messaging().getToken();
+    const access_token = await AsyncStorage.getItem('token');
     console.log('Fcm token: ', token);
     this.setState({
       fcmToken: token
     });
+    axios.put(localBaseurl + 'addfcmToken', {
+      fcmToken: token
+    },
+      {
+        headers: { Authorization: `Bearer ${access_token}` }
+      }).then(resp => {
+        console.log('fcm token put', resp.data);
+      }).catch(err => {
+        console.log('fcm token put', err.response.data);
+      })
 
-  }
+  };
 
   async setCurrentUser() {
-    // const [{ callID }, zimAction] = useZIM();
     const token = await AsyncStorage.getItem('token');
     const resp = await axios.get(localBaseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } });
     if (resp.data) {
       this.setState({
         user: resp.data
       })
-      var userInfo = { userID: resp.data.userId, userName: resp.data.fullName };
-      // zimAction.login(userInfo).then(() => {
-      //   console.log("ZIM login success");
-      // }).catch(function (err) {
-      //   // Login failed.
-      //   console.log("ZIM login failed");
-      // });
     } else {
       console.log("get profile error");
     }
@@ -356,7 +367,7 @@ class BottomTabNavigation extends Component {
   async updateZegoToken() {
     // Obtain the token interface provided by the App Server
     const reps = await fetch(
-      `${zego_config.serverUrl}/access_token?uid=${this.state.user.userId}`,
+      `${zego_config.serverUrl}/access_token?uid=${this.state.user?.userId}`,
       {
         method: 'GET',
         headers: {
@@ -390,16 +401,18 @@ class BottomTabNavigation extends Component {
       }
     });
     notifee.onBackgroundEvent(async ({ type, detail }) => {
-      if (type === EventType.PRESS) {
-        console.log('User press on background event: ', detail)
-        // await notifee.cancelNotification(detail.notification.id);
-        await notifee.cancelAllNotifications();
-      } else if (type == EventType.ACTION_PRESS && detail.pressAction.id) {
-        if (detail.pressAction.id == 'accept') {
-          console.log('Accept the call...', detail.notification.data.roomID)
-          this.handleIncomingCall(detail.notification.data.roomID);
+      if (detail.notification.data && detail.notification.data.roomID) {
+        if (type === EventType.PRESS) {
+          console.log('User press on background event: ', detail)
+          // await notifee.cancelNotification(detail.notification.id);
+          await notifee.cancelAllNotifications();
+        } else if (type == EventType.ACTION_PRESS && detail.pressAction.id) {
+          if (detail.pressAction.id == 'accept') {
+            console.log('Accept the call...', detail.notification.data.roomID)
+            this.handleIncomingCall(detail.notification.data.roomID);
+          }
+          await notifee.cancelAllNotifications();
         }
-        await notifee.cancelAllNotifications();
       }
     });
 
@@ -410,49 +423,68 @@ class BottomTabNavigation extends Component {
   async onMessageReceived(message) {
     // invokeApp();
     console.log("Foreground Message:---->>>> ", message);
-    notifee.displayNotification({
-      title: '<p style="color: #4caf50;"><b>' + '📞 ' + message.data.callerUserName + ' incoming call..' + '</span></p></b></p>',
-      body: 'Tap to view contact.',
-      data: { "roomID": message.data.roomID, "callType": message.data.callType },
-      android: {
-        channelId: 'callinvite',
-        largeIcon: message.data.callerIconUrl,
-        // Launch the app on lock screen
-        fullScreenAction: {
-          // For Android Activity other than the default:
-          id: 'full_screen_body_press',
-          launchActivity: 'default',
-        },
-        pressAction: {
-          id: 'body_press',
-          launchActivity: 'default',
-        },
-        actions: [
-          {
-            title: 'Denied',
-            //   icon: 'https://my-cdn.com/icons/snooze.png',
-            pressAction: {
-              id: 'denied',
-              launchActivity: 'default',
-            },
+    if (message.data?.roomID) {
+      notifee.displayNotification({
+        title: '<p style="color: #4caf50;"><b>' + '📞 ' + message.data.callerUserName + ' incoming call..' + '</span></p></b></p>',
+        body: 'Tap to view contact.',
+        data: { "roomID": message.data.roomID, "callType": message.data.callType },
+        android: {
+          channelId: 'callinvite',
+          largeIcon: message.data.callerIconUrl,
+          // Launch the app on lock screen
+          fullScreenAction: {
+            // For Android Activity other than the default:
+            id: 'full_screen_body_press',
+            launchActivity: 'default',
           },
-          {
-            title: 'Accept',
-            //   icon: 'https://my-cdn.com/icons/snooze.png',
-            pressAction: {
-              id: 'accept',
-              launchActivity: 'default',
-            },
+          pressAction: {
+            id: 'body_press',
+            launchActivity: 'default',
           },
-        ],
-      },
-    });
-    console.log('Show completed.')
+          actions: [
+            {
+              title: 'Denied',
+              //   icon: 'https://my-cdn.com/icons/snooze.png',
+              pressAction: {
+                id: 'denied',
+                launchActivity: 'default',
+              },
+            },
+            {
+              title: 'Accept',
+              //   icon: 'https://my-cdn.com/icons/snooze.png',
+              pressAction: {
+                id: 'accept',
+                launchActivity: 'default',
+              },
+            },
+          ],
+        },
+      });
+      console.log('Show completed.')
+      setTimeout(async () => {
+        await notifee.cancelAllNotifications();
+        PushNotification.localNotification({
+          channelId: "missedCall",
+          title: `Missed Call`,
+          message: `You have a missed call from ${message?.data?.callerUserName || message?.data?.roomID || '_unknown_'}`,
+          bigText: ``
+        });
+      }, 3000);
+    }
+    else {
+      console.log("admin foreground notification");
+    }
   };
 
   getTabBarVisibility = (route) => {
     const routeName = getFocusedRouteNameFromRoute(route);
-    if (routeName === "ChatRoom") {
+    if (routeName === "ChatRoom" ||
+      routeName === "MyWallet" ||
+      routeName === "Settings" ||
+      routeName === "BlockList" ||
+      routeName === "TopWeekly"
+    ) {
       return "none";
     }
     return "flex";
@@ -460,6 +492,7 @@ class BottomTabNavigation extends Component {
 
 
   HomeStack(props) {
+    // console.log(props.route.params);
     return (
       <Stack.Navigator>
         <Stack.Screen
@@ -471,6 +504,17 @@ class BottomTabNavigation extends Component {
         <Stack.Screen
           name="ChatRoom"
           component={ChatRoom}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="TopWeekly"
+          initialParams={props.route.params}
+          component={TopWeekly}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="MyWallet"
+          component={MyWallet}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
@@ -493,10 +537,73 @@ class BottomTabNavigation extends Component {
         />
       </Stack.Navigator>
     );
-  }
+  };
+
+  HistoryStack(props) {
+    return (
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Offers"
+          initialParams={props.route.params}
+          component={History}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ChatRoom"
+          component={ChatRoom}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="MyWallet"
+          component={MyWallet}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    );
+  };
+
+  AccountStack(props) {
+    // console.log(props.route.params);
+    return (
+      <Stack.Navigator>
+        <Stack.Screen
+          name="ProfileEdit"
+          component={ProfileEdit}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Delete"
+          component={Delete}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="MyWallet"
+          component={MyWallet}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={Setting}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="BlockList"
+          component={BlockList}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          initialParams={props.route.params}
+          name="FollowsFollowers"
+          component={FollowsFollowers}
+          options={{ headerShown: false }}
+        />
+      </Stack.Navigator>
+    );
+  };
 
   render() {
-    if (this.state.user && this.state.fcmToken != '') {
+    // console.log(this.state.zegoToken );
+    if (this.state.user && this.state.zegoToken != '' && this.state.fcmToken != '') {
       var appData = {
         appID: zego_config.appID,
         serverUrl: zego_config.serverUrl,
@@ -528,15 +635,23 @@ class BottomTabNavigation extends Component {
             })}
           />
           <Tab.Screen
-            name="Offers"
-            component={History}
-            options={{
-              // tabBarBadge: 3,
+            name="HistoryStack"
+            initialParams={{ 'appData': appData }}
+            component={this.HistoryStack}
+            options={({ route }) => ({
+              tabBarStyle: [{ backgroundColor: '#fff' }, { display: this.getTabBarVisibility(route) }],
               tabBarBadgeStyle: { backgroundColor: 'blue' },
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="heart" color={color} size={size} />
               ),
-            }}
+            })}
+          // options={{
+          //   // tabBarBadge: 3,
+          //   tabBarBadgeStyle: { backgroundColor: 'blue' },
+          //   tabBarIcon: ({ color, size }) => (
+          //     <Ionicons name="heart" color={color} size={size} />
+          //   ),
+          // }}
           />
           <Tab.Screen
             name="Call us"
@@ -554,18 +669,21 @@ class BottomTabNavigation extends Component {
             })}
           />
           <Tab.Screen
-            name="Chat boat"
-            component={ProfileEdit}
-            options={{
+            name="AccountStack"
+            initialParams={{ 'appData': appData }}
+            component={this.AccountStack}
+            options={({ route }) => ({
+              tabBarStyle: [{ backgroundColor: '#fff' }, { display: this.getTabBarVisibility(route) }],
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="person-outline" color={color} size={size} />
               ),
-            }}
+            })}
           />
         </Tab.Navigator>
       );
     }
     else {
+      // console.log(this.state.user,this.state.zegoToken,this.state.fcmToken);
       return <ActivityIndicator />
     }
   };

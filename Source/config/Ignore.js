@@ -10,6 +10,9 @@ if (__DEV__) {
     "exported from 'deprecated-react-native-prop-types'.",
     "Non-serializable values were found in the navigation state.",
     "VirtualizedLists should never be nested inside plain ScrollViews",
+    "`new NativeEventEmitter()` was called with a non-null argument without the required `addListener` method.",
+    "init SDK",
+    "new NativeEventEmitter"
   ];
 
   const warn = console.warn;
