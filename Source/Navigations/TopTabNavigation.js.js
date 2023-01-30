@@ -18,8 +18,8 @@ function FollowsFollowers(props) {
             {/* <StatusBar translucent backgroundColor="transparent" /> */}
             <Tab.Navigator
                 screenOptions={{
-                    tabBarLabelStyle: { fontSize: wp('3%'), fontWeight: '600' },
-                    tabBarItemStyle: { width: 100 },
+                    tabBarLabelStyle: { fontSize: wp('2.9%'), fontWeight: '600' },
+                    // tabBarItemStyle: { width: wp(26) },
                     // tabBarStyle: { backgroundColor: Colors.pink },
                 }}>
                 <Tab.Screen

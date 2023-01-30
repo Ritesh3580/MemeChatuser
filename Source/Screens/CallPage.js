@@ -13,6 +13,7 @@ import {
     Image,
     TouchableOpacity,
 } from 'react-native';
+import SimpleToast from 'react-native-simple-toast';
 
 import ZegoExpressEngine, {
     ZegoTextureView,
@@ -320,6 +321,30 @@ export default class CallPage extends Component {
     };
 
     async _startTimer(_id) {
+        const token = await AsyncStorage.getItem('token');
+        let randomPromise = Promise.resolve(200);
+        axios.all([
+            axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
+            axios.get(baseurl + 'getOneUserProfile/' + _id, { headers: { Authorization: `Bearer ${token}` } }),
+            randomPromise
+        ]).then(response => {
+            let userData = response[0].data;
+            let hostData = response[1].data.getuser;
+            let userBalance = userData?.total_coins;
+            let hostFees = hostData?.hostuser_fees;
+            if (Number(userBalance) < Number(hostFees)) {
+                SimpleToast.show('Insufficient coin!');
+                this.leaveRoom();
+                return;
+            }
+            this._coinCalculate({
+                host_fees: hostFees,
+                time: 1,
+                userId: userData.userId
+            })
+        }).catch(err => {
+            console.log("call page get profile--->>>", err.response.data);
+        })
         this.startTimer = setInterval(() => {
             let time = this.state.time;
             this.setState({ time: time + 1 });
@@ -361,19 +386,44 @@ export default class CallPage extends Component {
                 let hostData = response[1].data.getuser;
                 let userBalance = userData?.total_coins;
                 let hostFees = hostData?.hostuser_fees;
-                // let userBalance = 600;
-                // let hostFees = 60;
-                // this.setState({userAvailCoin: userBalance});
-                if(!this.state.userAvailCoin){
-                    this.setState({userAvailCoin: userBalance - hostFees});
-                } else{
-                    this.setState({userAvailCoin: this.state.userAvailCoin - hostFees});
+                if (Number(userBalance) < Number(hostFees)) {
+                    SimpleToast.show('Insufficient coin!');
+                    this.leaveRoom();
+                    return;
                 }
-                // console.log(this.state.userAvailCoin);
+                // if (!this.state.userAvailCoin) {
+                //     this.setState({ userAvailCoin: userBalance - hostFees });
+                // } else {
+                //     this.setState({ userAvailCoin: this.state.userAvailCoin - hostFees });
+                // }
+                let min = this._getMinutes(this.state.time);
+                // console.log(min);
+                this._coinCalculate({
+                    host_fees: hostFees,
+                    time: min + 1,
+                    userId: userData.userId
+                })
             }).catch(err => {
                 console.log("call page get profile--->>>", err.response.data);
             })
         }, 60000);
+    };
+
+    _coinCalculate = async (data) => {
+        // console.log(data);
+        const token = await AsyncStorage.getItem('token');
+        let body = {
+            "hostuser_fees": data.host_fees,
+            "total_minute": data.time,
+            "userId": data.userId
+        };
+        axios.put(baseurl + 'parMinuteCall', body, { headers: { Authorization: `Bearer ${token}` } })
+            .then(resp => {
+                console.log("reduce coin-->", resp.data);
+            })
+            .catch(error => {
+                console.log("reduce coin-->", error.response.data);
+            })
     };
 
     _getMinutes = (sec) => {
@@ -429,24 +479,26 @@ export default class CallPage extends Component {
                 </View>
                 <View style={styles.btnCon}>
                     <TouchableOpacity
+                        disabled
                         style={styles.micCon}
                         onPress={this.enableMic.bind(this)}>
-                        {/* <Image style={styles.image} source={require('../img/mic.png')} /> */}
+                        {/* <Image style={styles.image} source={require('../Assetst/Images/mic.png')} /> */}
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.phoneCon}
                         onPress={this.leaveRoom.bind(this)}>
-                        {/* <Image
+                        <Image
                             style={styles.phoneImage}
-                            source={require('../img/phone.png')}
-                        /> */}
+                            source={require('../Assetst/Images/phone.png')}
+                        />
                     </TouchableOpacity>
                     <TouchableOpacity
+                        disabled
                         style={styles.cameraCon}
                         onPress={this.enableCamera.bind(this)}>
                         {/* <Image
                             style={styles.image}
-                            source={require('../img/camera.png')}
+                            source={require('../Assetst/Images/camera.png')}
                         /> */}
                     </TouchableOpacity>
                 </View>

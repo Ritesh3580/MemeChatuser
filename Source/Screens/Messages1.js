@@ -80,7 +80,7 @@ const Messages1 = props => {
             backgroundColor: '#fff',
           }}>
           <ScrollView>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={()=>props.navigation.navigate('AdminNotification')}>
               <View
                 style={{
                   width: wp('100%'),
@@ -132,7 +132,7 @@ const Messages1 = props => {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={()=>props.navigation.navigate('MissedCall')}>
               <View
                 style={{
                   width: wp('100%'),

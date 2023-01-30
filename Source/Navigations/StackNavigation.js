@@ -35,6 +35,7 @@ import SearchPerson from '../Screens/SearchPerson';
 import CallPage from '../Screens/CallPage';
 import HomePage from '../Screens/HomePage'
 import { createNavigationContainerRef, StackActions } from '@react-navigation/native';
+import MissedCall from '../Screens/MissedCall';
 
 
 const Stack = createNativeStackNavigator();
@@ -189,11 +190,11 @@ class StackNavigation extends Component {
           options={{headerShown: false}}
         />
   
-        <Stack.Screen
+        {/* <Stack.Screen
           name="Messages1"
           component={Messages1}
           options={{headerShown: false}}
-        />
+        /> */}
   
         <Stack.Screen
           name="SearchPerson"

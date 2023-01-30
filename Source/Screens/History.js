@@ -9,6 +9,7 @@ import {
   ImageBackground,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import {
@@ -22,10 +23,12 @@ import GirlsHistory from '../ReusableComponent/GirlsHistory';
 import Colors from '../Assetst/Constants/Colors';
 import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { localBaseurl } from '../config/baseurl';
+// import { localBaseurl } from '../config/baseurl';
 import axios from 'axios';
 import { zego_config } from '../config/ZegoConfig';
 import Modal from 'react-native-modal';
+import { baseurl } from '../config/baseurl';
+import SimpleToast from 'react-native-simple-toast';
 
 
 const History = props => {
@@ -36,12 +39,10 @@ const History = props => {
   const [activeProfile, setActiveProfile] = useState(null);
   const [myModal, setMyModal] = useState(false);
   const isFocused = useIsFocused();
-  // console.log(userData);
 
   useEffect(() => {
     if (isFocused) {
       userProfile();
-      // console.log("ok");
     }
   }, [isFocused]);
 
@@ -51,7 +52,7 @@ const History = props => {
     // setHistoryData([]);
     const token = await AsyncStorage.getItem('token');
     axios
-      .get(localBaseurl + 'finduserCallHistory', {
+      .get(baseurl + 'finduserCallHistory', {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(async res => {
@@ -67,6 +68,8 @@ const History = props => {
         setLoading(false);
       });
   };
+
+  // console.log(activeProfile);
 
 
   const _profilePressed = (data) => {
@@ -88,7 +91,7 @@ const History = props => {
 
     axios.all([
       axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(baseurl + 'getOneUserProfile/'+targetUser.userId, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(baseurl + 'getOneUserProfile/' + targetUser.userId, { headers: { Authorization: `Bearer ${token}` } }),
       randomPromise
     ]).then(responses => {
       if (responses[0]?.data?.total_coins < responses[1]?.data?.getuser?.hostuser_fees) {
@@ -165,6 +168,35 @@ const History = props => {
     props.navigation.navigate('ChatRoom', navData);
   };
 
+  const _removeAlert=(targetHost)=>{
+    // console.log(targetHost);
+    Alert.alert('Remove from History', 'Are your sure?', [
+      {
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {text: 'OK', onPress: () => _removeCallHistory(targetHost._id)},
+    ]);
+  };
+
+  const _removeCallHistory=async(_id)=>{
+    if(!_id){
+      return;
+    }
+    const token = await AsyncStorage.getItem('token');
+    axios.put(baseurl + 'removecallhistroy',{"_id": _id},{headers: { Authorization: `Bearer ${token}` }})
+    .then(res=>{
+      console.log("remove from call history-->>>",res.data);
+      userProfile();
+      SimpleToast.show("Host is removed from call history");
+    })
+    .catch(err=>{
+      console.log("remove from call history-->>>",err.response.data);
+      SimpleToast.show("Something error happened!");
+    })
+  }
+
   const ActiveProfile = ({ activeProfileData }) => {
     // console.log(activeProfileData);
     return (
@@ -181,7 +213,8 @@ const History = props => {
           marginTop: hp('1%'),
         }}>
         <ImageBackground
-          source={{ uri: activeProfileData?.userImage }}
+          source={{ uri: activeProfileData?.targetId?.userImage }}
+          // source={{ uri: "https://kickrproject.s3.amazonaws.com/f1f37338-1fbe-4142-b61c-724b8e8b0bd3.jpeg" }}
           resizeMode="cover"
           style={{ width: wp('84%'), height: hp('60%') }}
           imageStyle={{
@@ -214,6 +247,7 @@ const History = props => {
               />
             </TouchableOpacity> */}
             <TouchableOpacity
+            onPress={()=>_removeAlert(activeProfileData)}
               style={{
                 width: hp('6%'),
                 height: hp('6%'),
@@ -251,13 +285,13 @@ const History = props => {
                   color: Colors.white,
                   fontWeight: 'bold',
                 }}>
-                {activeProfileData?.FirstName}, {activeProfileData?.age}
+                {activeProfileData?.targetId?.FirstName}, {activeProfileData?.targetId?.age}
               </Text>
 
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={{ fontSize: hp('2%'), color: Colors.white }}>
-                  {activeProfileData?.city}
+                  {activeProfileData?.targetId?.city}
                 </Text>
                 <Ionicons
                   name="md-location-sharp"
@@ -319,7 +353,7 @@ const History = props => {
                   />
                   <Text style={{ fontSize: hp('1.5%'), color: Colors.white }}>
                     {' '}
-                    {activeProfileData?.hostuser_fees || 0} coins/min
+                    {activeProfileData?.targetId?.hostuser_fees || 0} coins/min
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -334,8 +368,8 @@ const History = props => {
                 }}>
                 <TouchableOpacity
                   onPress={async () => {
-                    await AsyncStorage.setItem('targetUser', JSON.stringify(activeProfileData));
-                    startCall(activeProfileData);
+                    await AsyncStorage.setItem('targetUser', JSON.stringify(activeProfileData?.targetId));
+                    startCall(activeProfileData.targetId);
                   }}
                   style={{
                     width: hp('5%'),
@@ -352,7 +386,7 @@ const History = props => {
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => _openChatRoom(activeProfileData)}
+                  onPress={() => _openChatRoom(activeProfileData.targetId)}
                   style={{
                     width: hp('5%'),
                     height: hp('5%'),
@@ -555,40 +589,47 @@ const History = props => {
           loading ?
             <ActivityIndicator size={35} color={"#b15eff"} style={{ marginTop: '50%' }} />
             :
-            <>
-              <View
-                style={{
-                  width: wp('100%'),
-                  height: hp('15%'),
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                <ScrollView showsHorizontalScrollIndicator={false} horizontal={true}>
-                  {
-                    historyData.reverse().map((item, index) => (
-                      <View key={index}>
-                        <GirlsHistory
-                          _key={index}
-                          img={item.targetId.userImage}
-                          click={() => _profilePressed(item.targetId)}
-                        />
-                      </View>
-                    ))
-                  }
-                </ScrollView>
-              </View>
-              {
-                activeProfile ?
-                  <ActiveProfile
-                    activeProfileData={activeProfile}
-                  />
-                  :
-                  <ActiveProfile
-                    activeProfileData={historyData[0].targetId}
-                  />
-              }
-            </>
+            historyData.length == 0 ?
+              <Text style={{
+                color: '#aaa', textAlign: 'center',
+                marginTop: hp(40), fontSize: 16, fontWeight: '500'
+              }}>No Data available!</Text>
+              :
+              <>
+                <View
+                  style={{
+                    width: wp('100%'),
+                    height: hp('15%'),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <ScrollView showsHorizontalScrollIndicator={false} horizontal={true}>
+                    {
+                      historyData.reverse().map((item, index) => (
+                        <View key={index}>
+                          <GirlsHistory
+                            _key={index}
+                            img={item.targetId.userImage}
+                            click={() => _profilePressed(item)}
+                          />
+                        </View>
+                      ))
+                    }
+                  </ScrollView>
+                </View>
+                {
+                  activeProfile ?
+                    <ActiveProfile
+                      activeProfileData={activeProfile}
+                    />
+                    :
+                    historyData[0]?.targetId &&
+                    <ActiveProfile
+                      activeProfileData={historyData[0]}
+                    />
+                }
+              </>
         }
       </View>
     </SafeAreaView>

@@ -1,5 +1,5 @@
 import React, { Component, useEffect } from 'react';
-import StyleSheet, { Alert, PermissionsAndroid, Platform } from 'react-native';
+import { Alert, AppState, PermissionsAndroid, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNavigationContainerRef, getFocusedRouteNameFromRoute, StackActions } from '@react-navigation/native';
@@ -35,6 +35,9 @@ import BlockList from '../Screens/BlockList';
 import { FollowsFollowers } from './TopTabNavigation.js';
 import TopWeekly from '../Screens/TopWeekly';
 import BackgroundTimer from 'react-native-background-timer';
+import MissedCall from '../Screens/MissedCall';
+import Messages1 from '../Screens/Messages1';
+import AdminNotification from '../Screens/AdminNotification';
 
 
 notifee.createChannel({
@@ -104,15 +107,6 @@ async function onBackgroundMessageReceived(message) {
       },
     });
     console.log('Show completed.');
-    BackgroundTimer.setTimeout(async()=>{
-      await notifee.cancelAllNotifications();
-        PushNotification.localNotification({
-          channelId: "missedCall",
-          title: `Missed Call`,
-          message: `You have a missed call from ${message?.data?.callerUserName || message?.data?.roomID || '_unknown_'}`,
-          bigText: ``
-        });
-    },30000);
   }
   else {
     console.log("admin background notification");
@@ -134,17 +128,32 @@ class BottomTabNavigation extends Component {
     zegoToken: '',
     fcmToken: '',
     isIncomingCall: false,
-    messageData: null
+    messageData: null,
+    appState: AppState.currentState
   };
 
 
   componentDidMount() {
     this.onAppBootstrap();
+    AppState.addEventListener('change', this._handleAppStateChange);
+    // _updateStatus();
   };
 
   componentWillUnmount() {
     this.messageListener;
+    AppState.removeEventListener('change', this._handleAppStateChange);
   };
+
+  _handleAppStateChange = (nextAppState) => {
+    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+      console.log('App has come to the foreground!');
+      //online api
+    }
+    this.setState({appState: nextAppState});
+    if(nextAppState === 'background'){
+      // offline api
+    }
+  }
 
   handleIncomingCall(roomID) {
     console.log('Navigate to home with incoming call..........');
@@ -355,10 +364,13 @@ class BottomTabNavigation extends Component {
   async setCurrentUser() {
     const token = await AsyncStorage.getItem('token');
     const resp = await axios.get(localBaseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } });
+    // console.log("set current user====",resp.data)
     if (resp.data) {
+      await AsyncStorage.setItem('uid', resp.data.uid);
       this.setState({
         user: resp.data
       })
+      // console.log('ok');
     } else {
       console.log("get profile error");
     }
@@ -390,28 +402,103 @@ class BottomTabNavigation extends Component {
   async setupNotification() {
     notifee.onForegroundEvent(async ({ type, detail }) => {
       if (type === EventType.PRESS) {
-        console.log('User press on froeground event: ', detail)
+        console.log('User press on froeground event: ', detail);
+        this.timer !== undefined ? clearTimeout(this.timer) : null;
+        this.background_timer !== undefined ? BackgroundTimer.clearTimeout(this.background_timer) : null;
         await notifee.cancelAllNotifications();
       } else if (type == EventType.ACTION_PRESS && detail.pressAction.id) {
         if (detail.pressAction.id == 'accept') {
-          console.log('Accept the call...', detail.notification.data.roomID)
+          console.log('Accept the call...', detail.notification.data.roomID);
           this.handleIncomingCall(detail.notification.data.roomID);
-        }
+        } 
+        this.timer !== undefined ? clearTimeout(this.timer) : null;
+        this.background_timer !== undefined ? BackgroundTimer.clearTimeout(this.background_timer) : null;
         await notifee.cancelAllNotifications();
+      }
+      else {
+        const token = await AsyncStorage.getItem('token');
+        this.timer = setTimeout(async () => {
+          await notifee.cancelAllNotifications();
+          PushNotification.localNotification({
+            channelId: "missedCall",
+            title: `Missed Call`,
+            message: `You have a missed call from ${detail.notification?.data?.callerUserName || detail.notification?.data?.roomID || '_unknown_'}`,
+            bigText: ``
+          });
+
+          axios.get(baseurl + 'getOneUserProfile/' + detail.notification?.data?.roomID, { headers: { Authorization: `Bearer ${token}` } })
+            .then(async resp => {
+              let uid = await AsyncStorage.getItem('uid');
+              let data = {
+                "uid": uid,
+                "videocallstatus": {
+                  "hostuserId": resp.data.getuser?._id,
+                  "status": "missed call"
+                }
+              };
+              // console.log("data-->>",data);
+              axios.post(baseurl + 'uservideocallstatus', data,
+                { headers: { Authorization: `Bearer ${token}` } })
+                .then(response => {
+                  console.log("Post Missed call--->>", response.data);
+                })
+                .catch(error => {
+                  console.log("Post Missed call--->>", error.response.data);
+                })
+                .catch(err => {
+                  console.log("get one host--->>", err.response.data);
+                })
+            })
+        }, 30000);
       }
     });
     notifee.onBackgroundEvent(async ({ type, detail }) => {
+      // console.log('on background event: ', this.background_timer);
       if (detail.notification.data && detail.notification.data.roomID) {
         if (type === EventType.PRESS) {
           console.log('User press on background event: ', detail)
-          // await notifee.cancelNotification(detail.notification.id);
+          this.background_timer !== undefined ? BackgroundTimer.clearTimeout(this.background_timer) : null;
           await notifee.cancelAllNotifications();
         } else if (type == EventType.ACTION_PRESS && detail.pressAction.id) {
           if (detail.pressAction.id == 'accept') {
             console.log('Accept the call...', detail.notification.data.roomID)
             this.handleIncomingCall(detail.notification.data.roomID);
           }
+          this.background_timer !== undefined ? BackgroundTimer.clearTimeout(this.background_timer) : null;
           await notifee.cancelAllNotifications();
+        } else {
+          const token = await AsyncStorage.getItem('token');
+          this.background_timer = BackgroundTimer.setTimeout(async () => {
+            axios.get(baseurl + 'getOneUserProfile/' + detail.notification?.data?.roomID, { headers: { Authorization: `Bearer ${token}` } })
+              .then(async resp => {
+                let uid = await AsyncStorage.getItem('uid');
+                let data = {
+                  "uid": uid,
+                  "videocallstatus": {
+                    "hostuserId": resp.data.getuser?._id,
+                    "status": "missed call"
+                  }
+                };
+                axios.post(baseurl + 'uservideocallstatus', data,
+                  { headers: { Authorization: `Bearer ${token}` } })
+                  .then(response => {
+                    console.log("Post Missed call--->>", response.data);
+                  })
+                  .catch(error => {
+                    console.log("Post Missed call--->>", error.response.data);
+                  })
+                  .catch(err => {
+                    console.log("get one host--->>", err.response.data);
+                  })
+              })
+            await notifee.cancelAllNotifications();
+            PushNotification.localNotification({
+              channelId: "missedCall",
+              title: `Missed Call`,
+              message: `You have a missed call from ${detail.notification?.data?.callerUserName || detail.notification?.data?.roomID || '_unknown_'}`,
+              bigText: ``
+            });
+          }, 30000);
         }
       }
     });
@@ -462,15 +549,6 @@ class BottomTabNavigation extends Component {
         },
       });
       console.log('Show completed.')
-      setTimeout(async () => {
-        await notifee.cancelAllNotifications();
-        PushNotification.localNotification({
-          channelId: "missedCall",
-          title: `Missed Call`,
-          message: `You have a missed call from ${message?.data?.callerUserName || message?.data?.roomID || '_unknown_'}`,
-          bigText: ``
-        });
-      }, 3000);
     }
     else {
       console.log("admin foreground notification");
@@ -483,13 +561,15 @@ class BottomTabNavigation extends Component {
       routeName === "MyWallet" ||
       routeName === "Settings" ||
       routeName === "BlockList" ||
-      routeName === "TopWeekly"
+      routeName === "TopWeekly" ||
+      routeName === "MissedCall" ||
+      routeName === "Messages1" ||
+      routeName === "AdminNotification" 
     ) {
       return "none";
     }
     return "flex";
   };
-
 
   HomeStack(props) {
     // console.log(props.route.params);
@@ -517,6 +597,23 @@ class BottomTabNavigation extends Component {
           component={MyWallet}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="Messages1"
+          component={Messages1}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="MissedCall"
+          initialParams={props.route.params}
+          component={MissedCall}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="AdminNotification"
+          initialParams={props.route.params}
+          component={AdminNotification}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     );
   };
@@ -533,6 +630,23 @@ class BottomTabNavigation extends Component {
         <Stack.Screen
           name="ChatRoom"
           component={ChatRoom}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Messages1"
+          component={Messages1}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="MissedCall"
+          initialParams={props.route.params}
+          component={MissedCall}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="AdminNotification"
+          initialParams={props.route.params}
+          component={AdminNotification}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
@@ -602,7 +716,7 @@ class BottomTabNavigation extends Component {
   };
 
   render() {
-    // console.log(this.state.zegoToken );
+
     if (this.state.user && this.state.zegoToken != '' && this.state.fcmToken != '') {
       var appData = {
         appID: zego_config.appID,
@@ -702,5 +816,6 @@ function pushToScreen(...args) {
 }
 
 export {
-  navigationRef, pushToScreen
+  navigationRef, 
+  pushToScreen
 };

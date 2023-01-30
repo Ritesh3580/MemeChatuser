@@ -30,7 +30,6 @@ const GirlsHistory = (props) => {
                     height: hp('8%'),
                     borderRadius: hp('8%'),
                     resizeMode: 'cover'
-
                 }}
 
             />
