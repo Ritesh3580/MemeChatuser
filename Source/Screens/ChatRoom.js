@@ -1,15 +1,15 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, View, Text, FlatList, Image, Pressable } from 'react-native';
-import { Bubble, GiftedChat } from 'react-native-gifted-chat';
-import firestore from '@react-native-firebase/firestore';
+// import { Bubble, GiftedChat } from 'react-native-gifted-chat';
+// import firestore from '@react-native-firebase/firestore';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+// import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Colors from '../Assetst/Constants/Colors';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment/moment';
 import Ionicons from 'react-native-vector-icons/Ionicons'
-import Avatar from 'react-native-boring-avatars';
+// import Avatar from 'react-native-boring-avatars';
 
 import {
     Layout,

@@ -16,9 +16,11 @@ import {
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
 // import { Searchbar } from 'react-native-paper';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import Entypo from 'react-native-vector-icons/Entypo';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Colors from '../Assetst/Constants/Colors';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -34,6 +36,8 @@ import { useIsFocused } from '@react-navigation/native';
 import { useZIM } from '../hooks/zim';
 import Modal from 'react-native-modal';
 import SimpleToast from 'react-native-simple-toast';
+import messaging from '@react-native-firebase/messaging';
+// import Calling from '../ReusableComponent/Calling';
 
 //import { ScrollView } from 'react-native-gesture-handler';
 
@@ -51,18 +55,27 @@ export default function Home(props) {
   const [blockedHostId, setBlockedHostId] = useState([]);
   const [userData, setUserData] = useState(null);
   const [myModal, setMyModal] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
   const appData = props.route.params.appData;
   const isFocused = useIsFocused();
 
   const [{ callID }, zimAction] = useZIM();
 
   useEffect(() => {
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      if (remoteMessage?.notification?.body == "offline" || remoteMessage?.notification?.body == "Online") {
+        userProfile();
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
     zimAction.initEvent();
     zimAction.login({ userID: appData?.user?.userId, userName: appData?.user?.fullName }).then(() => {
-      // navigation.push('Home');
       console.log("ZIM LOGIN SUCCESS");
       zimAction.updateUserInfo(appData?.user?.fullName, appData?.user?.imageUrl);
-      // zimAction.queryUsersInfo(['69899928']);
     })
     if (props.route.params.roomID) {
       handleIncomingCall(props.route.params.roomID);
@@ -135,7 +148,7 @@ export default function Home(props) {
 
     axios.all([
       axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(baseurl + 'getOneUserProfile/'+targetUser.userId, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(baseurl + 'getOneUserProfile/' + targetUser.userId, { headers: { Authorization: `Bearer ${token}` } }),
       randomPromise
     ]).then(responses => {
       if (responses[0]?.data?.total_coins < responses[1]?.data?.getuser?.hostuser_fees) {
@@ -143,6 +156,7 @@ export default function Home(props) {
         toggleMyMobile();
         return;
       }
+      setIsCalling(true);
       jumpToCallPage(appData?.user?.userId);
       sendCallInvite({
         roomID: responses[0]?.data?.userId,
@@ -152,7 +166,7 @@ export default function Home(props) {
     })
       .catch(err => {
         SimpleToast.show("Server down!");
-        console.log("get user during video call-->", err.response.data);
+        console.log("get user during video call-->", err);
       })
   };
 
@@ -326,31 +340,37 @@ export default function Home(props) {
                         borderWidth: 1,
                         borderColor: '#b15eff',
                       }}>
-                      <View
-                        style={{
-                          width: wp('42%'),
-                          height: hp('5%'),
-                          justifyContent: 'center',
-                          padding: wp('2%'),
-                        }}>
-                        {/* <TouchableOpacity
-                          style={{
-                            width: wp('10%'),
-                            height: hp('2%'),
-                            backgroundColor: Colors.green2,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: hp('1.5%'),
-                          }}>
-                          <Text
+                      {
+                        item.acctiveStatus ?
+                          <View
                             style={{
-                              fontSize: hp('1%'),
-                              color: Colors.white,
+                              width: wp('42%'),
+                              height: hp('5%'),
+                              justifyContent: 'center',
+                              padding: wp('2%'),
                             }}>
-                            online
-                          </Text>
-                        </TouchableOpacity> */}
-                      </View>
+                            <TouchableOpacity
+                              style={{
+                                width: wp('10%'),
+                                height: hp('2%'),
+                                backgroundColor: Colors.green2,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: hp('1.5%'),
+                                position: 'absolute'
+                              }}>
+                              <Text
+                                style={{
+                                  fontSize: hp('1%'),
+                                  color: Colors.white,
+                                  textTransform: 'capitalize'
+                                }}>
+                                {item.acctiveStatus}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          : null
+                      }
                       <View
                         style={{
                           width: wp('45%'),
@@ -716,6 +736,33 @@ export default function Home(props) {
             </View>
           </Modal>
         </View>
+        {/* <View>
+          <Modal
+            isVisible={isCalling}
+            animationIn="slideInLeft"
+            animationOut="slideOutRight"
+            // animationOutTiming={500}
+            // animationInTiming={500}
+            hideModalContentWhileAnimating={true}
+            useNativeDriverForBackdrop={true}
+            onBackdropPress={() => setMyModal(false)}
+            onSwipeComplete={() => setMyModal(false)}
+            swipeDirection={['down']}
+            avoidKeyboard={true}
+            useNativeDriver={true}
+            style={{
+              width: wp('100%'),
+              alignSelf: 'center',
+              height: hp('100%'),
+              alignItems: 'center'
+            }}>
+            <View style={{ height: 60, width: '80%', borderRadius: 4, flexDirection: 'row', backgroundColor: '#fff', alignItems: 'center', justifyContent:'space-between',paddingHorizontal:20 }}>
+              <Feather name='phone-call' color={'blue'} size={24} />
+              <Text style={{ color: '#000',fontWeight:'600' }}>Calling...</Text>
+              <MaterialIcons name='call-end' color={'red'} size={30} />
+            </View>
+          </Modal>
+        </View> */}
       </View>
     </SafeAreaView>
   );

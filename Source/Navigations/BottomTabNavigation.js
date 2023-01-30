@@ -109,7 +109,27 @@ async function onBackgroundMessageReceived(message) {
     console.log('Show completed.');
   }
   else {
-    console.log("admin background notification");
+    if (message.notification?.body == 'Online' || message.notification?.body == 'offline') {
+      notifee.displayNotification({
+        title: 'okk',
+        body: 'Tap to view contact.',
+        data: {  },
+        android: {
+          channelId: 'test',
+          // largeIcon: message.data.callerIconUrl,
+          // Launch the app on lock screen
+          fullScreenAction: {
+            // For Android Activity other than the default:
+            id: 'full_screen_body_press',
+            launchActivity: 'default',
+          },
+          pressAction: {
+            id: 'body_press',
+            launchActivity: 'default',
+          },
+        },
+      });
+    }
   }
 }
 // Handle message while APP has been killed
@@ -137,6 +157,7 @@ class BottomTabNavigation extends Component {
     this.onAppBootstrap();
     AppState.addEventListener('change', this._handleAppStateChange);
     // _updateStatus();
+    this._updateOnlineStatus();
   };
 
   componentWillUnmount() {
@@ -144,14 +165,39 @@ class BottomTabNavigation extends Component {
     AppState.removeEventListener('change', this._handleAppStateChange);
   };
 
-  _handleAppStateChange = (nextAppState) => {
+  _updateOnlineStatus = async () => {
+    const token = await AsyncStorage.getItem('token');
+    let header = { Authorization: `Bearer ${token}` }
+    axios.put(baseurl + 'userUpdateStatusOnline', {}, { headers: header })
+      .then(resp => {
+        console.log("appstate -->>", resp.data);
+      })
+      .catch(err => {
+        console.log('appstate -->>', err.response.data);
+      })
+  };
+
+  _updateOfflineStatus = async () => {
+    const token = await AsyncStorage.getItem('token');
+    let header = { Authorization: `Bearer ${token}` }
+    axios.put(baseurl + 'userUpdateStatusOffline', {}, { headers: header })
+      .then(resp => {
+        console.log("appstate -->>", resp.data);
+      })
+      .catch(err => {
+        console.log('appstate -->>', err.response.data);
+      })
+  };
+
+  _handleAppStateChange = async (nextAppState) => {
     if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
       console.log('App has come to the foreground!');
-      //online api
+      this._updateOnlineStatus();
     }
-    this.setState({appState: nextAppState});
-    if(nextAppState === 'background'){
-      // offline api
+    this.setState({ appState: nextAppState });
+    if (nextAppState === 'background') {
+      console.log('App is in background!');
+      this._updateOfflineStatus();
     }
   }
 
@@ -410,7 +456,7 @@ class BottomTabNavigation extends Component {
         if (detail.pressAction.id == 'accept') {
           console.log('Accept the call...', detail.notification.data.roomID);
           this.handleIncomingCall(detail.notification.data.roomID);
-        } 
+        }
         this.timer !== undefined ? clearTimeout(this.timer) : null;
         this.background_timer !== undefined ? BackgroundTimer.clearTimeout(this.background_timer) : null;
         await notifee.cancelAllNotifications();
@@ -552,6 +598,9 @@ class BottomTabNavigation extends Component {
     }
     else {
       console.log("admin foreground notification");
+      if (message.notification?.body == 'online' || message.notification?.body == 'offline') {
+        // PushNotification.clearAllNotifications();
+      }
     }
   };
 
@@ -564,7 +613,7 @@ class BottomTabNavigation extends Component {
       routeName === "TopWeekly" ||
       routeName === "MissedCall" ||
       routeName === "Messages1" ||
-      routeName === "AdminNotification" 
+      routeName === "AdminNotification"
     ) {
       return "none";
     }
@@ -816,6 +865,6 @@ function pushToScreen(...args) {
 }
 
 export {
-  navigationRef, 
+  navigationRef,
   pushToScreen
 };

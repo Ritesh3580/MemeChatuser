@@ -178,7 +178,7 @@ const Messages1 = props => {
                   <Text
                     style={{fontSize: hp('1.5%'), color: '#949894'}}
                     numberOfLines={1}>
-                    We have 1 missed call
+                    Missed calls
                   </Text>
                 </View>
               </View>

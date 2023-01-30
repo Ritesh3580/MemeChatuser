@@ -90,7 +90,7 @@ const AdminNotification = props => {
                                 color: '#fff',
                                 textAlignVertical: 'center',
                             }}>
-                            Admin Notification
+                            Notification
                         </Text>
                     </View>
                     <View

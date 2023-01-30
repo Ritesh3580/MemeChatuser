@@ -188,7 +188,7 @@ export default class CallPage extends Component {
                             findNodeHandle(this.remoteViewRef.current),
                         );
                     });
-                    // this._startTimer(roomID);
+                    // console.log(this.userID);
                     this.addCallHistory();
                     if (this.userID == roomID) {
                         this._startTimer(userList[0]);
@@ -321,6 +321,7 @@ export default class CallPage extends Component {
     };
 
     async _startTimer(_id) {
+        // console.log("_id-->>",_id);
         const token = await AsyncStorage.getItem('token');
         let randomPromise = Promise.resolve(200);
         axios.all([
@@ -340,7 +341,7 @@ export default class CallPage extends Component {
             this._coinCalculate({
                 host_fees: hostFees,
                 time: 1,
-                userId: userData.userId
+                userId: _id
             })
         }).catch(err => {
             console.log("call page get profile--->>>", err.response.data);
@@ -377,6 +378,7 @@ export default class CallPage extends Component {
         this.calculateCoin = setInterval(async () => {
             const token = await AsyncStorage.getItem('token');
             let randomPromise = Promise.resolve(200);
+            // console.log(_id);
             axios.all([
                 axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
                 axios.get(baseurl + 'getOneUserProfile/' + _id, { headers: { Authorization: `Bearer ${token}` } }),
@@ -386,6 +388,7 @@ export default class CallPage extends Component {
                 let hostData = response[1].data.getuser;
                 let userBalance = userData?.total_coins;
                 let hostFees = hostData?.hostuser_fees;
+                let hostId = hostData?.userId;
                 if (Number(userBalance) < Number(hostFees)) {
                     SimpleToast.show('Insufficient coin!');
                     this.leaveRoom();
@@ -401,7 +404,7 @@ export default class CallPage extends Component {
                 this._coinCalculate({
                     host_fees: hostFees,
                     time: min + 1,
-                    userId: userData.userId
+                    userId: hostId
                 })
             }).catch(err => {
                 console.log("call page get profile--->>>", err.response.data);
@@ -410,13 +413,15 @@ export default class CallPage extends Component {
     };
 
     _coinCalculate = async (data) => {
-        // console.log(data);
+        // console.log("data-->>>",data);
+
         const token = await AsyncStorage.getItem('token');
         let body = {
             "hostuser_fees": data.host_fees,
             "total_minute": data.time,
             "userId": data.userId
         };
+        // console.log(body);
         axios.put(baseurl + 'parMinuteCall', body, { headers: { Authorization: `Bearer ${token}` } })
             .then(resp => {
                 console.log("reduce coin-->", resp.data);
