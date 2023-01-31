@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   SafeAreaView,
@@ -17,8 +17,86 @@ import {
 import Colors from '../Assetst/Constants/Colors';
 //import * as Animatable from 'react-native-animatable';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import { 
+  LoginManager, 
+  AccessToken, 
+  GraphRequest, 
+  GraphRequestManager 
+} from 'react-native-fbsdk-next';
 
-const SignIn = ({navigation}) => {
+
+const SignIn = ({ navigation }) => {
+
+  const _googleSignIn = async () => {
+    GoogleSignin.configure({
+      androidClientId: '741976163539-3mimktjgh0h70ea36qqi1rnsfqsqcdi3.apps.googleusercontent.com', // debug
+      // androidClientId: '741976163539-lgrio81ud1ko2ecqutp4b2nkesv2q23p.apps.googleusercontent.com', // release
+    });
+    GoogleSignin.hasPlayServices().then((hasPlayService) => {
+      if (hasPlayService) {
+        GoogleSignin.signIn().then((userInfo) => {
+          console.log("GOOLE SIGNIN DATA-->>",userInfo)
+          // api call
+        })
+          .catch((e) => {
+            console.log("GOOLE SIGNIN-->" + (e));
+          })
+      }
+      else {
+        console.log("playservice error");
+      }
+    }).catch((e) => {
+      console.log("GOOLE SIGNIN-->" + (e));
+    })
+  };
+
+  const _fblogIn=()=>{
+    LoginManager
+    .logInWithPermissions(['public_profile','email'])
+    .then(function (result) {
+      if (result.isCancelled) {
+        alert('Login cancelled');
+      } else {
+        AccessToken
+          .getCurrentAccessToken()
+          .then((data) => {
+            let accessToken = data.accessToken;
+            // alert(accessToken.toString())
+
+            const responseInfoCallback = (error, result) => {
+              if (error) {
+                console.log(error)
+                // alert('Error fetching data: ' + error.toString());
+              } else {
+                console.log("fb sign in-->",result);
+                // api call
+              }
+            }
+
+            const infoRequest = new GraphRequest('/me', {
+              accessToken: accessToken,
+              parameters: {
+                fields: {
+                  string: 'email,name,first_name,middle_name,last_name,picture.type(large)'
+                }
+              }
+            }, responseInfoCallback);
+
+            // Start the graph request.
+            new GraphRequestManager()
+              .addRequest(infoRequest)
+              .start()
+
+          })
+      }
+    }, function (error) {
+      alert('Login fail with error: ' + error);
+    });
+  }
   return (
     <SafeAreaView>
       <View style={styles.container}>
@@ -46,7 +124,7 @@ const SignIn = ({navigation}) => {
               }}>
               <Image
                 source={require('../Assetst/Images/memechatlogo.png')}
-                style={{width: hp('10%'), height: hp('10%')}}
+                style={{ width: hp('10%'), height: hp('10%') }}
               />
             </View>
             <View
@@ -60,7 +138,7 @@ const SignIn = ({navigation}) => {
               <Image
                 resizeMode="stretch"
                 source={require('../Assetst/Images/memechat.png')}
-                style={{width: wp('30%'), height: wp('12%')}}
+                style={{ width: wp('30%'), height: wp('12%') }}
               />
             </View>
             {/* <View style={{ width: wp('100%'), height: hp('5%'), justifyContent: 'center', alignItems: 'center',  }}>
@@ -85,7 +163,7 @@ const SignIn = ({navigation}) => {
                 name="mobile1"
                 size={hp('2.5%')}
                 color="black"
-                style={{marginRight: hp('1%')}}
+                style={{ marginRight: hp('1%') }}
               />
               <Text
                 style={{
@@ -147,6 +225,7 @@ const SignIn = ({navigation}) => {
                 padding: wp('0.5%'),
               }}>
               <TouchableOpacity
+              onPress={_fblogIn}
                 style={{
                   width: wp('40%'),
                   flexDirection: 'row',
@@ -178,6 +257,7 @@ const SignIn = ({navigation}) => {
               </TouchableOpacity>
 
               <TouchableOpacity
+                onPress={_googleSignIn}
                 style={{
                   width: wp('40%'),
                   flexDirection: 'row',
@@ -191,7 +271,7 @@ const SignIn = ({navigation}) => {
                 }}>
                 <Image
                   source={require('../Assetst/Images/google.png')}
-                  style={{width: wp('5%'), height: hp('2.8%')}}
+                  style={{ width: wp('5%'), height: hp('2.8%') }}
                 />
                 <Text
                   style={{
@@ -214,7 +294,7 @@ const SignIn = ({navigation}) => {
                 padding: wp('0.5%'),
                 alignItems: 'center',
               }}>
-              <Text style={{fontSize: hp('1.6%'), color: 'black'}}>
+              <Text style={{ fontSize: hp('1.6%'), color: 'black' }}>
                 By signing up, you agree to our {''}
                 <Text
                   style={{
@@ -223,7 +303,7 @@ const SignIn = ({navigation}) => {
                     textDecorationLine: 'underline',
                   }}>
                   Privacy Policy.
-                  <Text style={{fontSize: hp('1.6%'), color: 'black'}}>
+                  <Text style={{ fontSize: hp('1.6%'), color: 'black' }}>
                     {' '}
                     and{' '}
                     <Text

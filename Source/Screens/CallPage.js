@@ -198,9 +198,13 @@ export default class CallPage extends Component {
                     this.addCallHistory();
                     if (this.userID == roomID) {
                         this._startTimer(userList[0]);
+                        this._coinCalculateOneTime(userList[0]);
+                        this._coinCalculateInterval(userList[0]);
                     }
                     else {
-                        this._startTimer(roomID)
+                        this._startTimer(roomID);
+                        this._coinCalculateOneTime(roomID);
+                        this._coinCalculateInterval(roomID);
                     }
                 }
             },
@@ -344,11 +348,6 @@ export default class CallPage extends Component {
                 this.leaveRoom();
                 return;
             }
-            this._coinCalculate({
-                host_fees: hostFees,
-                time: 1,
-                userId: _id
-            })
         }).catch(err => {
             console.log("call page get profile--->>>", err.response.data);
         })
@@ -381,6 +380,10 @@ export default class CallPage extends Component {
                 this.setState({ hour: hours })
             }
         }, 1000);
+    };
+
+    _coinCalculateOneTime = async (_id) => {
+        // console.log("data-->>>",data);
         this.calculateCoin = setInterval(async () => {
             const token = await AsyncStorage.getItem('token');
             let randomPromise = Promise.resolve(200);
@@ -407,34 +410,76 @@ export default class CallPage extends Component {
                 // }
                 let min = this._getMinutes(this.state.time);
                 // console.log(min);
-                this._coinCalculate({
-                    host_fees: hostFees,
-                    time: min + 1,
-                    userId: hostId
-                })
+                let body = {
+                    "hostuser_fees": hostFees,
+                    "total_minute": 1,
+                    "userId": hostId
+                };
+                // console.log(body);
+                axios.put(baseurl + 'parMinuteCall', body, { headers: { Authorization: `Bearer ${token}` } })
+                    .then(resp => {
+                        console.log("reduce coin-->", resp.data);
+                    })
+                    .catch(error => {
+                        console.log("reduce coin-->", error.response.data);
+                    })
             }).catch(err => {
                 console.log("call page get profile--->>>", err.response.data);
             })
         }, 60000);
+
+        // const token = await AsyncStorage.getItem('token');
+        
     };
 
-    _coinCalculate = async (data) => {
+    _coinCalculateInterval = async (_id) => {
         // console.log("data-->>>",data);
+        this.calculateCoin = setInterval(async () => {
+            const token = await AsyncStorage.getItem('token');
+            let randomPromise = Promise.resolve(200);
+            // console.log(_id);
+            axios.all([
+                axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get(baseurl + 'getOneUserProfile/' + _id, { headers: { Authorization: `Bearer ${token}` } }),
+                randomPromise
+            ]).then(response => {
+                let userData = response[0].data;
+                let hostData = response[1].data.getuser;
+                let userBalance = userData?.total_coins;
+                let hostFees = hostData?.hostuser_fees;
+                let hostId = hostData?.userId;
+                if (Number(userBalance) < Number(hostFees)) {
+                    SimpleToast.show('Insufficient coin!');
+                    this.leaveRoom();
+                    return;
+                }
+                // if (!this.state.userAvailCoin) {
+                //     this.setState({ userAvailCoin: userBalance - hostFees });
+                // } else {
+                //     this.setState({ userAvailCoin: this.state.userAvailCoin - hostFees });
+                // }
+                let min = this._getMinutes(this.state.time);
+                // console.log(min);
+                let body = {
+                    "hostuser_fees": hostFees,
+                    "total_minute": min + 1,
+                    "userId": hostId
+                };
+                // console.log(body);
+                axios.put(baseurl + 'parMinuteCall', body, { headers: { Authorization: `Bearer ${token}` } })
+                    .then(resp => {
+                        console.log("reduce coin-->", resp.data);
+                    })
+                    .catch(error => {
+                        console.log("reduce coin-->", error.response.data);
+                    })
+            }).catch(err => {
+                console.log("call page get profile--->>>", err.response.data);
+            })
+        }, 60000);
 
-        const token = await AsyncStorage.getItem('token');
-        let body = {
-            "hostuser_fees": data.host_fees,
-            "total_minute": data.time,
-            "userId": data.userId
-        };
-        // console.log(body);
-        axios.put(baseurl + 'parMinuteCall', body, { headers: { Authorization: `Bearer ${token}` } })
-            .then(resp => {
-                console.log("reduce coin-->", resp.data);
-            })
-            .catch(error => {
-                console.log("reduce coin-->", error.response.data);
-            })
+        // const token = await AsyncStorage.getItem('token');
+        
     };
 
     _getMinutes = (sec) => {

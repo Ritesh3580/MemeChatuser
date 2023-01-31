@@ -148,6 +148,7 @@ class BottomTabNavigation extends Component {
 
   _updateOnlineStatus = async () => {
     const token = await AsyncStorage.getItem('token');
+    console.log(token);
     let header = { Authorization: `Bearer ${token}` }
     axios.put(baseurl + 'userUpdateStatusOnline', {}, { headers: header })
       .then(resp => {
@@ -489,7 +490,7 @@ class BottomTabNavigation extends Component {
     });
     notifee.onBackgroundEvent(async ({ type, detail }) => {
       // console.log('on background event: ', this.background_timer);
-      if (detail.notification.data && detail.notification.data.roomID) {
+      if (detail.notification?.data && detail.notification.data.roomID) {
         if (type === EventType.PRESS) {
           console.log('User press on background event: ', detail)
           this.background_timer !== undefined ? BackgroundTimer.clearTimeout(this.background_timer) : null;
