@@ -140,8 +140,9 @@ export default function Home(props) {
 
   async function startCall(targetUser) {
     const token = await AsyncStorage.getItem('token');
-    if (targetUser?.userId == '') {
+    if (!targetUser) {
       console.warn('Invalid user id');
+      alert("Invalid target user");
       return;
     };
     let randomPromise = Promise.resolve(200);
@@ -156,13 +157,14 @@ export default function Home(props) {
         toggleMyMobile();
         return;
       }
-      setIsCalling(true);
-      jumpToCallPage(appData?.user?.userId);
-      sendCallInvite({
-        roomID: responses[0]?.data?.userId,
-        user: responses[0].data,
+      // setIsCalling(true);
+      // alert('calling');
+       sendCallInvite({
+        roomID: appData.user.userId,
+        user: appData.user,
         targetUserID: targetUser.userId,
       });
+      jumpToCallPage(appData?.user?.userId);
     })
       .catch(err => {
         SimpleToast.show("Server down!");
@@ -437,7 +439,7 @@ export default function Home(props) {
                             onPress={async () => {
                               // await setTargetUser(item);
                               await AsyncStorage.setItem('targetUser', JSON.stringify(item));
-                              startCall(item);
+                              await startCall(item);
                             }}
                             style={{
                               width: hp('5%'),
@@ -557,7 +559,7 @@ export default function Home(props) {
                           <TouchableOpacity
                             onPress={async () => {
                               await AsyncStorage.setItem('targetUser', JSON.stringify(item));
-                              startCall(item);
+                              await startCall(item);
                             }}
                             style={{
                               width: hp('5%'),

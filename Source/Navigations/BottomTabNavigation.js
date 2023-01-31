@@ -110,25 +110,6 @@ async function onBackgroundMessageReceived(message) {
   }
   else {
     if (message.notification?.body == 'Online' || message.notification?.body == 'offline') {
-      notifee.displayNotification({
-        title: 'okk',
-        body: 'Tap to view contact.',
-        data: {  },
-        android: {
-          channelId: 'test',
-          // largeIcon: message.data.callerIconUrl,
-          // Launch the app on lock screen
-          fullScreenAction: {
-            // For Android Activity other than the default:
-            id: 'full_screen_body_press',
-            launchActivity: 'default',
-          },
-          pressAction: {
-            id: 'body_press',
-            launchActivity: 'default',
-          },
-        },
-      });
     }
   }
 }
@@ -216,20 +197,28 @@ class BottomTabNavigation extends Component {
       let grantedCamera = PermissionsAndroid.check(
         PermissionsAndroid.PERMISSIONS.CAMERA,
       );
+      // let grantedNotification = PermissionsAndroid.check(
+      //   PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      // );
       const ungrantedPermissions = [];
       try {
         const isAudioGranted = await grantedAudio;
         const isVideoGranted = await grantedCamera;
+        // const isNotificationGranted = await grantedNotification;
         if (!isAudioGranted) {
           ungrantedPermissions.push(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
         }
         if (!isVideoGranted) {
           ungrantedPermissions.push(PermissionsAndroid.PERMISSIONS.CAMERA);
         }
+        // if (!isNotificationGranted) {
+        //   ungrantedPermissions.push(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+        // }
       } catch (error) {
         ungrantedPermissions.push(
           PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
           PermissionsAndroid.PERMISSIONS.CAMERA,
+          // PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
         );
       }
       // If not, request it

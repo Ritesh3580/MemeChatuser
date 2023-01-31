@@ -123,13 +123,13 @@ export default class CallPage extends Component {
     userID;
     userName;
     timeRef;
-    targetUser;
     appData; // pass back to home page
     constructor(props) {
         super(props)
         // console.log('Call page route params--------------->>>>>>>>>>>>>>>> ', props.route.params)
-        this.appData = props.route.params.appData;
-        this.targetUser = props.route.params.targetUser;
+        this.appData = props.route?.params?.appData;
+        // this.targetUser = props.route?.params?.targetUser;
+        // console.log(this.targetUser);
         this.localViewRef = React.createRef();
         // console.log("LOCAL VIEW---->>>>",this.localViewRef);
         this.remoteViewRef = React.createRef();
@@ -167,6 +167,12 @@ export default class CallPage extends Component {
 
             // Join room and wait...
             this.joinRoom();
+            setTimeout(()=>{
+                if(this.state.time == 0){
+                    SimpleToast.show("Host is not available at this moment");
+                    this.leaveRoom();
+                }
+            },35000);
         });
         // this._startTimer("20255941");
     };
