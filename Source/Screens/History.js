@@ -56,10 +56,13 @@ const History = props => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(async res => {
-        // console.log("ALL HOSTS---->>>>>>", res.data.CallHistory.userCallhistorys[0]);
+
+        console.log("ALL HOSTS---->>>>>>", res.data.CallHistory.userCallhistorys.length);
         // storage.set('AllHost', JSON.stringify(res.data));
         const newData = res.data.CallHistory.userCallhistorys.filter((v, i, a) => a.findIndex(v2 => (v2.targetId._id === v.targetId._id)) === i);
         // console.log(newData);
+        // const newData = res.data.CallHistory.userCallhistorys;
+
         setHistoryData(newData);
         setLoading(false);
       })
@@ -198,7 +201,8 @@ const History = props => {
   }
 
   const ActiveProfile = ({ activeProfileData }) => {
-    // console.log(activeProfileData);
+    console.log("activeProfileData--------------------------------------------------------------------------------",activeProfileData);
+    console.log("historyData--------------------------------------------------------------------------------------",historyData)
     return (
       <View
         style={{
@@ -245,7 +249,7 @@ const History = props => {
                 size={hp('3%')}
                 style={{ color: Colors.white }}
               />
-            </TouchableOpacity> */}
+            </TouchableOpacity>
             <TouchableOpacity
             onPress={()=>_removeAlert(activeProfileData)}
               style={{
@@ -263,7 +267,7 @@ const History = props => {
                 size={hp('3%')}
                 style={{ color: Colors.white }}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <View
@@ -335,25 +339,12 @@ const History = props => {
                     // width: wp('20%'),
                     // height: hp('3%'),
                     backgroundColor: 'green',
-                    borderRadius: hp('5%'),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingVertical: 2,
-                    paddingHorizontal: 5
+                    borderRadius: hp('1%'),
+                    paddingVertical: 4,
+                    paddingHorizontal:10,
                   }}>
-                  <Image
-                    source={require('../Assetst/Images/coins.png')}
-                    style={{
-                      width: hp('1.8%'),
-                      height: hp('1.8%'),
-                      resizeMode: 'contain',
-                      borderRadius: hp('1.8%'),
-                    }}
-                  />
                   <Text style={{ fontSize: hp('1.5%'), color: Colors.white }}>
-                    {' '}
-                    {activeProfileData?.targetId?.hostuser_fees || 0} coins/min
+                    {activeProfileData?.targetId?.acctiveStatus || ""}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -607,10 +598,10 @@ const History = props => {
                   <ScrollView showsHorizontalScrollIndicator={false} horizontal={true}>
                     {
                       historyData.reverse().map((item, index) => (
-                        <View key={index}>
+                        <View key={index} >
                           <GirlsHistory
                             _key={index}
-                            img={item.targetId.userImage}
+                            img={item.targetId.FirstName}
                             click={() => _profilePressed(item)}
                           />
                         </View>

@@ -12,6 +12,7 @@ import Language from '../Screens/Language';
 import Delete from '../Screens/Delete';
 import History from '../Screens/History';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import Colors from '../Assetst/Constants/Colors';
 import ProfileScreen from '../Screens/Profile';
 import ProfileEdit from '../Screens/ProfileEdit';
@@ -462,7 +463,8 @@ class BottomTabNavigation extends Component {
             bigText: ``
           });
 
-          axios.get(baseurl + 'getOneUserProfile/' + detail.notification?.data?.roomID, { headers: { Authorization: `Bearer ${token}` } })
+          axios.get(baseurl + 'getOneUserProfile/' + detail.notification?.data?.roomID,
+           { headers: { Authorization: `Bearer ${token}` } })
             .then(async resp => {
               let uid = await AsyncStorage.getItem('uid');
               let data = {
@@ -518,7 +520,7 @@ class BottomTabNavigation extends Component {
                 axios.post(baseurl + 'uservideocallstatus', data,
                   { headers: { Authorization: `Bearer ${token}` } })
                   .then(response => {
-                    console.log("Post Missed call--->>", response.data);
+                    console.log("Post Missed call---user video call>>", response.data);
                   })
                   .catch(error => {
                     console.log("Post Missed call--->>", error.response.data);
@@ -756,7 +758,7 @@ class BottomTabNavigation extends Component {
 
   render() {
 
-    if (this.state.user && this.state.zegoToken != '' && this.state.fcmToken != '') {
+    if (this.state.user && this.state.zegoToken && this.state.fcmToken != '') {
       var appData = {
         appID: zego_config.appID,
         serverUrl: zego_config.serverUrl,
@@ -795,7 +797,9 @@ class BottomTabNavigation extends Component {
               tabBarStyle: [{ backgroundColor: '#fff' }, { display: this.getTabBarVisibility(route) }],
               tabBarBadgeStyle: { backgroundColor: 'blue' },
               tabBarIcon: ({ color, size }) => (
-                <Ionicons name="heart" color={color} size={size} />
+                // <Ionicons name="heart" color={color} size={size} />
+                <MaterialCommunityIcons name="history" color={color} size={size}/>
+
               ),
             })}
           // options={{

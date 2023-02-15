@@ -41,7 +41,7 @@ const Transaction = props => {
     axios
       .get(localBaseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } })
       .then(async res => {
-        // console.log('jidsaidfsj', res.data);
+        console.log('jidsaidfsj------', res.data.payment_history);
         // setFriendData(res.data);
         setProfileData(res.data);
         setLoading(false);
@@ -53,6 +53,7 @@ const Transaction = props => {
       })
   };
   return (
+    
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar backgroundColor="#b15eff" />
       <View style={styles.container}>
@@ -130,6 +131,7 @@ const Transaction = props => {
                             color: '#939292',
                             fontWeight: 'normal',
                           }}>
+                            {console.log(item.time)}
                           {moment(item.time).format('DD/MM/YYYY, h:mm:ss a')}
                         </Text>
                       </View>

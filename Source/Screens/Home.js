@@ -61,15 +61,15 @@ export default function Home(props) {
 
   const [{ callID }, zimAction] = useZIM();
 
-  useEffect(() => {
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      if (remoteMessage?.notification?.body == "offline" || remoteMessage?.notification?.body == "Online") {
-        userProfile();
-      }
-    });
+  // useEffect(() => {
+  //   const unsubscribe = messaging().onMessage(async remoteMessage => {
+  //     if (remoteMessage?.notification?.body == "offline" || remoteMessage?.notification?.body == "Online") {
+  //       userProfile();
+  //     }
+  //   });
 
-    return unsubscribe;
-  }, []);
+  //   return unsubscribe;
+  // }, []);
 
   useEffect(() => {
     zimAction.initEvent();
@@ -77,6 +77,7 @@ export default function Home(props) {
       console.log("ZIM LOGIN SUCCESS");
       zimAction.updateUserInfo(appData?.user?.fullName, appData?.user?.imageUrl);
     })
+    console.log("props==?", props);
     if (props.route.params.roomID) {
       handleIncomingCall(props.route.params.roomID);
     };
@@ -157,6 +158,7 @@ export default function Home(props) {
         toggleMyMobile();
         return;
       }
+      //console.log(baseurl + 'showProfile')
       // setIsCalling(true);
       // alert('calling');
        sendCallInvite({
@@ -226,7 +228,7 @@ export default function Home(props) {
             onPress={() => props.navigation.navigate('TopWeekly')}>
             <FontAwesome5Icon
               name="crown"
-              size={hp('2%')}
+              size={hp('2.5%')}
               style={{ color: Colors.yellow }}
             />
           </TouchableOpacity>
@@ -244,7 +246,7 @@ export default function Home(props) {
               onPress={() => props.navigation.navigate('Messages1')}>
               <FontAwesome5Icon
                 name="bell"
-                size={hp('2.2%')}
+                size={hp('2.5%')}
                 style={{ color: Colors.black }}
               />
             </TouchableOpacity>
@@ -252,7 +254,7 @@ export default function Home(props) {
               onPress={() => props.navigation.navigate('SearchPerson', { host: data, appData: appData, roomID: props.route?.params?.roomID })}>
               <FontAwesome5Icon
                 name="search"
-                size={hp('2.5%')}
+                size={hp('2.7%')}
                 style={{ color: Colors.black }}
               />
             </TouchableOpacity>
@@ -261,14 +263,14 @@ export default function Home(props) {
         <View
           style={{
             width: wp('100%'),
-            height: hp('10%'),
+            height: hp('15%'),
             alignSelf: 'center',
             //marginTop: hp('0.5%'),
             // alignItems: 'center',
             justifyContent: 'center',
             //backgroundColor: 'green',
-            borderWidth: 1,
-            borderColor: Colors.gray
+            // borderWidth: 1,
+            // borderColor: Colors.gray
           }}>
           {
             banner?.length === 0 ?
@@ -313,6 +315,7 @@ export default function Home(props) {
                   justifyContent: 'space-around',
                   alignItems: 'center',
                   paddingHorizontal: wp('0.8%'),
+                  // backgroundColor:'red'
                 }}>
                 <TouchableOpacity
                   style={{
@@ -320,7 +323,8 @@ export default function Home(props) {
                     height: hp('29.8%'),
                     justifyContent: 'center',
                     borderRadius: hp('2%'),
-                    borderWidth: 2,
+                    borderWidth: 1,
+                    borderColor: '#b15eff',
                     alignItems: 'center',
                     marginTop: hp('1%'),
                   }}
@@ -377,11 +381,12 @@ export default function Home(props) {
                         style={{
                           width: wp('45%'),
                           height: hp('6%'),
-                          marginTop: hp('18%'),
+                          marginTop: hp('16%'),
                           flexDirection: 'row',
                           justifyContent: 'space-between',
-                          //backgroundColor:'purple',
+                          // backgroundColor:'purple',
                           alignSelf: 'center',
+
                         }}>
                         <View
                           style={{
@@ -463,7 +468,7 @@ export default function Home(props) {
                     <ImageBackground
                       source={{ uri: item.userImage }}
                       resizeMode="cover"
-                      style={{ width: wp('49%'), height: hp('29.8%') }}
+                      style={{ width: wp('49%'), height: hp('24.8%') }}
                       imageStyle={{
                         borderRadius: hp('2%'),
                         borderWidth: 1,
@@ -783,9 +788,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   imgSlider: {
-    width: wp('98%'),
-    height: wp('19%'),
-    alignSelf: 'center',
-    justifyContent: 'center',
+    width: wp('100%'),
+    height: wp('30%'),
+    //alignSelf: 'center',
+   // justifyContent: 'center',
   },
 });

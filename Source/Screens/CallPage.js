@@ -153,6 +153,7 @@ export default class CallPage extends Component {
 
 
     componentDidMount() {
+        // this._startTimer();
         this.grantPermissions();
 
         console.warn('init SDK');
@@ -178,6 +179,9 @@ export default class CallPage extends Component {
     };
     componentWillUnmount() {
         ZegoExpressManager.instance().leaveRoom();
+        // clearInterval(this.startTimer);
+        // clearInterval(this.calculateCoin);
+        // clearTimeout(this.calculateCoin);
     };
 
     registerCallback() {
@@ -301,6 +305,9 @@ export default class CallPage extends Component {
     // Join in ZEGOCLOUD's room and wait for other.
     // While user on the same room, they can talk to each other
     async joinRoom() {
+        this.setState({
+            time:0,
+        });
         // console.log("Join room: ", this.roomID, this.token)
         ZegoExpressManager.instance().joinRoom(this.roomID, this.token, { userID: this.userID, userName: this.userName },
             [ZegoMediaOptions.PublishLocalAudio, ZegoMediaOptions.PublishLocalVideo, ZegoMediaOptions.AutoPlayAudio, ZegoMediaOptions.AutoPlayVideo]).then(result => {
@@ -319,19 +326,25 @@ export default class CallPage extends Component {
         this.setState({
             showPreview: false,
             showPlay: false,
+            time:"done"
         });
+
+       
         ZegoExpressManager.instance()
             .leaveRoom()
             .then(async () => {
                 console.warn('Leave successful');
                 clearInterval(this.startTimer);
+                clearInterval(this.startTimer);
                 clearInterval(this.calculateCoin);
+                clearTimeout(this.calculateCoin);
                 this.props.navigation.navigate('BottomTabNavigation', { appData: this.appData });
             });
     };
 
     async _startTimer(_id) {
         // console.log("_id-->>",_id);
+        // console.log("start timer");
         const token = await AsyncStorage.getItem('token');
         let randomPromise = Promise.resolve(200);
         axios.all([
@@ -351,12 +364,19 @@ export default class CallPage extends Component {
         }).catch(err => {
             console.log("call page get profile--->>>", err.response.data);
         })
-        this.startTimer = setInterval(() => {
+
+        if(this.state.time !="done"){
+
+         this.startTimer = setInterval(() => {
+            
             let time = this.state.time;
+            console.log("start timer",time);
+
             this.setState({ time: time + 1 });
             let sec = Number(time) % 60;
             let min = this._getMinutes(time);
             let hours = this._getHours(time);
+
             if (sec < 10) {
                 this.setState({ sec: '0' + sec })
             } else {
@@ -380,103 +400,119 @@ export default class CallPage extends Component {
                 this.setState({ hour: hours })
             }
         }, 1000);
+
+    }
+        
     };
 
     _coinCalculateOneTime = async (_id) => {
         // console.log("data-->>>",data);
-        this.calculateCoin = setInterval(async () => {
-            const token = await AsyncStorage.getItem('token');
-            let randomPromise = Promise.resolve(200);
-            // console.log(_id);
-            axios.all([
-                axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
-                axios.get(baseurl + 'getOneUserProfile/' + _id, { headers: { Authorization: `Bearer ${token}` } }),
-                randomPromise
-            ]).then(response => {
-                let userData = response[0].data;
-                let hostData = response[1].data.getuser;
-                let userBalance = userData?.total_coins;
-                let hostFees = hostData?.hostuser_fees;
-                let hostId = hostData?.userId;
-                if (Number(userBalance) < Number(hostFees)) {
-                    SimpleToast.show('Insufficient coin!');
-                    this.leaveRoom();
-                    return;
-                }
-                // if (!this.state.userAvailCoin) {
-                //     this.setState({ userAvailCoin: userBalance - hostFees });
-                // } else {
-                //     this.setState({ userAvailCoin: this.state.userAvailCoin - hostFees });
-                // }
-                let min = this._getMinutes(this.state.time);
-                // console.log(min);
-                let body = {
-                    "hostuser_fees": hostFees,
-                    "total_minute": 1,
-                    "userId": hostId
-                };
-                // console.log(body);
-                axios.put(baseurl + 'parMinuteCall', body, { headers: { Authorization: `Bearer ${token}` } })
-                    .then(resp => {
-                        console.log("reduce coin-->", resp.data);
-                    })
-                    .catch(error => {
-                        console.log("reduce coin-->", error.response.data);
-                    })
-            }).catch(err => {
-                console.log("call page get profile--->>>", err.response.data);
-            })
-        }, 60000);
-
+        if(this.state.time !="done"){
+            this.calculateCoin = setTimeout(async () => {
+                const token = await AsyncStorage.getItem('token');
+                let randomPromise = Promise.resolve(200);
+                // console.log(_id);
+                axios.all([
+                    axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
+                    axios.get(baseurl + 'getOneUserProfile/' + _id, { headers: { Authorization: `Bearer ${token}` } }),
+                    randomPromise
+                ]).then(response => {
+                    let userData = response[0].data;
+                    let hostData = response[1].data.getuser;
+                    let userBalance = userData?.total_coins;
+                    let hostFees = hostData?.hostuser_fees;
+                    let hostId = hostData?.userId;
+                    if (Number(userBalance) < Number(hostFees)) {
+                        SimpleToast.show('Insufficient coin!');
+                        this.leaveRoom();
+                        return;
+                    }
+                    // if (!this.state.userAvailCoin) {
+                    //     this.setState({ userAvailCoin: userBalance - hostFees });
+                    // } else {
+                    //     this.setState({ userAvailCoin: this.state.userAvailCoin - hostFees });
+                    // }
+                    let min = this._getMinutes(this.state.time);
+                    // console.log("_coinCalculateOneTime min--",min);
+                    let body = {
+                        "hostuser_fees": hostFees,
+                        "total_minute": 1,
+                        "userId": hostId
+                    };
+                    console.log("body for api _coinCalculateOneTime---",body);
+                    axios.put(baseurl + 'parMinuteCall', body, { headers: { Authorization: `Bearer ${token}` } })
+                        .then(resp => {
+                            console.log("reduce coin-->", resp.data);
+                            // console.log("_coinCalculateOneTime api");
+                            // AsyncStorage.setItem("coinsReduce","coinsReduce");
+                        })
+                        .catch(error => {
+                            console.log("reduce coin-->", error.response.data);
+                        })
+                }).catch(err => {
+                    console.log("call page get profile--->>>", err.response.data);
+                })
+            },6000); 
+        }
+            
+        
+        
         // const token = await AsyncStorage.getItem('token');
         
     };
 
     _coinCalculateInterval = async (_id) => {
         // console.log("data-->>>",data);
-        this.calculateCoin = setInterval(async () => {
-            const token = await AsyncStorage.getItem('token');
-            let randomPromise = Promise.resolve(200);
-            // console.log(_id);
-            axios.all([
-                axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
-                axios.get(baseurl + 'getOneUserProfile/' + _id, { headers: { Authorization: `Bearer ${token}` } }),
-                randomPromise
-            ]).then(response => {
-                let userData = response[0].data;
-                let hostData = response[1].data.getuser;
-                let userBalance = userData?.total_coins;
-                let hostFees = hostData?.hostuser_fees;
-                let hostId = hostData?.userId;
-                if (Number(userBalance) < Number(hostFees)) {
-                    SimpleToast.show('Insufficient coin!');
-                    this.leaveRoom();
-                    return;
-                }
-                // if (!this.state.userAvailCoin) {
-                //     this.setState({ userAvailCoin: userBalance - hostFees });
-                // } else {
-                //     this.setState({ userAvailCoin: this.state.userAvailCoin - hostFees });
-                // }
-                let min = this._getMinutes(this.state.time);
-                // console.log(min);
-                let body = {
-                    "hostuser_fees": hostFees,
-                    "total_minute": min + 1,
-                    "userId": hostId
-                };
-                // console.log(body);
-                axios.put(baseurl + 'parMinuteCall', body, { headers: { Authorization: `Bearer ${token}` } })
-                    .then(resp => {
-                        console.log("reduce coin-->", resp.data);
-                    })
-                    .catch(error => {
-                        console.log("reduce coin-->", error.response.data);
-                    })
-            }).catch(err => {
-                console.log("call page get profile--->>>", err.response.data);
-            })
-        }, 60000);
+        
+            if(this.state.time !="done"){
+            this.calculateCoin = setInterval(async() => {
+                const token = await AsyncStorage.getItem('token');
+                let randomPromise = Promise.resolve(200);
+                // console.log(_id);
+                axios.all([
+                    axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
+                    axios.get(baseurl + 'getOneUserProfile/' + _id, { headers: { Authorization: `Bearer ${token}` } }),
+                    randomPromise
+                ]).then(response => {
+                    let userData = response[0].data;
+                    let hostData = response[1].data.getuser;
+                    let userBalance = userData?.total_coins;
+                    let hostFees = hostData?.hostuser_fees;
+                    let hostId = hostData?.userId;
+                    if (Number(userBalance) < Number(hostFees)) {
+                        SimpleToast.show('Insufficient coin!');
+                        this.leaveRoom();
+                        return;
+                    }
+                    // if (!this.state.userAvailCoin) {
+                    //     this.setState({ userAvailCoin: userBalance - hostFees });
+                    // } else {
+                    //     this.setState({ userAvailCoin: this.state.userAvailCoin - hostFees });
+                    // }
+                    let min = this._getMinutes(this.state.time);
+                    // console.log("_coinCalculateInterval min--",min);
+                    let body = {
+                        "hostuser_fees": hostFees,
+                        "total_minute":1,
+                        "userId": hostId
+                    };
+                    // console.log(body);
+                    axios.put(baseurl + 'parMinuteCall', body, { headers: { Authorization: `Bearer ${token}` } })
+                        .then(resp => {
+                            console.log("reduce coin-->", resp.data);
+                            // console.log("_coinCalculateInterval api call");
+                        })
+                        .catch(error => {
+                            console.log("reduce coin-->", error.response.data);
+                        })
+                }).catch(err => {
+                    console.log("call page get profile--->>>", err.response.data);
+                })
+            },60000);
+        }
+        
+        
+
 
         // const token = await AsyncStorage.getItem('token');
         

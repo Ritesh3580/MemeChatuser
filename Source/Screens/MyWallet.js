@@ -29,6 +29,9 @@ import { PAYEE_NAME, VPA } from '../config/PaymentInfo';
 import SimpleToast from 'react-native-simple-toast';
 import { useIsFocused } from '@react-navigation/native';
 import Colors from '../Assetst/Constants/Colors';
+import { token } from '../config/baseurl';
+import { Time } from 'react-native-gifted-chat';
+import moment from 'moment';
 
 const MyWallet = props => {
 
@@ -43,15 +46,18 @@ const MyWallet = props => {
   useEffect(() => {
     if (isFocused) {
       getCoinsPrice();
+      _makePayment();
+      successCallback();
     }
-  }, [isFocused]);
+  }, [isFocused,coinsItemObj]);
 
   const getCoinsPrice = async () => {
     const token = await AsyncStorage.getItem('token');
     // console.log(token);
     axios.get(localBaseurl + 'findAllWallet', { headers: { Authorization: `Bearer ${token}` } })
       .then(resp => {
-        // console.log(resp.data);
+        // console.log("find All wallet"+resp.data);
+        console.log(resp.data);
         setCoinsData(resp.data.getWallet);
       })
       .catch(err => {
@@ -79,7 +85,10 @@ const MyWallet = props => {
         "coins": coinsItemObj.coins
       }]
     };
-    axios.put(localBaseurl + 'addpaymenthistory', { headers: { Authorization: `Bearer ${token}` }, paymentInfo })
+    axios.put(localBaseurl + 'addpaymenthistory', 
+    paymentInfo,
+    { headers: { Authorization: `Bearer ${token}` }, 
+     })
       .then(resp => {
         console.log("add payment history", resp.data);
       })
@@ -89,25 +98,40 @@ const MyWallet = props => {
   };
 
 
-  const _makePayment = (item) => {
+  const _makePayment = async(item) => {
+    console.log("item make payment---->>>>>>",item._id);
     const refId = _makeid(16);
+    const date = moment()
+         .utcOffset('+05:30')
+         .format('YYYY-MM-DD:hh:mm:ss a');
+         console.log(date);
     setCoinsItemObj(item);
+   console.log("coinsItemObj-----",coinsItemObj);
     RNUpiPayment.initializePayment({
       vpa: VPA, // it should be a merchant upi
       payeeName: PAYEE_NAME,
       amount: item.price,
-      transactionRef: refId
+      transactionRef: refId,
+      time:date
     }, successCallback, failureCallback);
   };
 
   const successCallback = async (data) => {
     console.log("PAYMENT SUCCESS--->>>", data);
+    console.log(coinsItemObj);
     if (!coinsItemObj) {
       console.log("Coins item didn't update!, Please check state update...");
       return;
     };
     const token = await AsyncStorage.getItem('token');
-    axios.put(localBaseurl + 'applyNewRecharge', { headers: { Authorization: `Bearer ${token}` } }, { "walletId": coinsItemObj.coins })
+    console.log("wallet token",token);
+    console.log(coinsItemObj._id);
+    
+    axios
+    .put(localBaseurl + `applyNewRecharge`,
+    {"walletId": coinsItemObj._id},
+    {headers: { Authorization: `Bearer ${token}`}}
+    )
       .then(async resp => {
         console.log("Recharge-->>", resp.data);
         await addPaymentHistory(data);
@@ -119,6 +143,8 @@ const MyWallet = props => {
 
   const failureCallback = async (data) => {
     console.log("PAYMENT FAILURE--->>>", data);
+    console.log(coinsItemObj);
+    console.log(coinsItemObj._id);
     if(data.message){
       SimpleToast.show(data.message, SimpleToast.LONG);
     }

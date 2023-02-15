@@ -55,7 +55,7 @@ const LoginWithPhone = ({route, navigation}) => {
         phone: num,
       })
       .then(function (response) {
-        console.log(response.data.Details);
+        console.log(response.data);
         setdetailsValue(response.data.Details);
         setIsOtpSent(true);
       })

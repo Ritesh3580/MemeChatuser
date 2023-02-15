@@ -23,16 +23,7 @@ const GirlsHistory = (props) => {
             }}
             onPress={props.click ? props.click : () => { }}
         >
-            <Image
-                source={{uri:props.img}}
-                style={{
-                    width: hp('8%'),
-                    height: hp('8%'),
-                    borderRadius: hp('8%'),
-                    resizeMode: 'cover'
-                }}
-
-            />
+            <Text  style={{fontSize:30,color:"#b15eff"}}>{props.img[0]}</Text>
         </TouchableOpacity>
 
     )

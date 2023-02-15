@@ -35,6 +35,7 @@ import axios from 'axios';
 import { storage } from '../store/MMKV';
 import { localBaseurl } from '../config/baseurl';
 import Colors from '../Assetst/Constants/Colors';
+import moment from 'moment';
 
 
 const timestampToTime = (timestamp) => {
@@ -140,9 +141,10 @@ const Messages = props => {
       title={`${item.conversationName || item.conversationID}`}
       description={lastMessage(item)}
       accessoryLeft={<LeftBox item={item} />}
-      accessoryRight={<RightBox notify={item.notificationStatus} text={item.lastMessage && timestampToTime(item.lastMessage.timestamp) || ''} />}
+      accessoryRight={<RightBox notify={item.notificationStatus} text={item.lastMessage &&  moment(item.lastMessage.timestamp).format('DD/MM/YYYY, hh:mm a')   || ''} />}
     />
   );
+
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -218,6 +220,8 @@ const Messages = props => {
                 ItemSeparatorComponent={Divider}
                 renderItem={renderItem}
               />
+              // <>
+              // </>
           }
 
           {/* <TouchableOpacity>

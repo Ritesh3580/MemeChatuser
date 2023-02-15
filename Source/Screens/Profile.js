@@ -27,6 +27,7 @@ import moment from 'moment';
 import axios from 'axios';
 import {baseurl, token, localBaseurl} from '../config/baseurl';
 const profileDataUrl = localBaseurl + 'register_with_phone';
+import { useIsFocused } from '@react-navigation/native';
 
 const ProfileScreen = ({route, navigation}) => {
   const [date, setDate] = useState();
@@ -38,6 +39,8 @@ const ProfileScreen = ({route, navigation}) => {
   const [image, setImage] = useState('');
   const [color, setColor] = useState(true);
   const [myColor, setMyColor] = useState(false);
+  const[profile,setProfile]=useState('');
+  const isFocused = useIsFocused();
   //    const { tokenIdName } = route.params;
 
   const Male = () => {
@@ -59,7 +62,7 @@ const ProfileScreen = ({route, navigation}) => {
       height: hp('15%'),
       cropping: true,
     }).then(image => {
-      console.log(image);
+      console.log("imageEdited",image);
       setImage(image.path);
       if (image) {
         setModalVisible(false);
@@ -136,17 +139,22 @@ const ProfileScreen = ({route, navigation}) => {
     axios
       .post(profileDataUrl, userData, {
         headers: {Authorization: 'Bearer ' + token},
+
       })
+      //console.log(userData,'hiiii')
       .then(response => {
         // console.log('cdnsvjdfvsnjkdfnvjkdfnv', profileDataUrl, userData);
         // console.log('data is coming');
-        // console.log(response.data);
+          //console.log(response.data,'hiiiiiii');
         if (response.data.status) {
           alert('profile data submitted  successful');
           navigation.navigate('BottomTabNavigation')
           // navigation.navigate('FollowNext');
+
+
+        
         } else {
-          alert('user is alredy register');
+          //alert('user is alredy register');
           navigation.navigate('BottomTabNavigation');
         }
       })
@@ -155,6 +163,76 @@ const ProfileScreen = ({route, navigation}) => {
       })
   };
 
+
+
+
+
+
+
+
+  useEffect(()=>{
+    if(route.params == undefined){
+      // console.log("city from city-->>",route.params.city);
+      
+    }else{
+      setCity(route.params.name)
+    }
+  },[route]);
+
+  // useEffect(() => {
+  //   if(isFocused){
+  //     _getUserProfile();
+  //   }
+  // }, [isFocused]);
+
+  // const _getUserProfile = async () => {
+  //   const token = await AsyncStorage.getItem('token');
+  //   axios
+  //     .get(localBaseurl + 'showProfile', {headers: {Authorization: `Bearer ${token}`}})
+  //     .then(res => {
+  //       setProfile(res.data);
+  //       setName(res.data.fullName);
+  //       setId(res.data.userId);
+  //       setGender(res.data.gender);
+  //       setPhoneNo(res.data.phone);
+  //       !route.params?.city && setCity(res.data.city);
+  //       setEmail(res.data.emailId);
+  //       setDate(res.data.dateOfBirth);
+  //       res.data.relationshipStatus && setselectedRelationship(res.data.relationshipStatus);
+  //     });
+  // };
+
+  // const nameUser = E => {
+  //   setName(E.nativeEvent.text);
+  // };
+
+  // const realtionShip = R => {
+  //   setselectedRelationship(R);
+  // };
+
+
+  // const _updateProfile = async () => {
+  //   if (selectedRelationship == '') {
+  //     alert('Select your relationship status');
+  //     return;
+  //   }
+  //   const token = await AsyncStorage.getItem('token');
+  //   const userData = {
+  //   city: location,
+     
+  //   };
+  //   axios
+  //     .put(localBaseurl + 'updateduserPeofile', userData, {
+  //       headers: {Authorization: `Bearer ${token}`},
+  //     })
+  //     .then(res => {
+  //       SimpleToast.show('Successfully Updated');
+  //       navigation.navigate('ProfileEdit');
+  //     });
+  // };
+
+  
+console.log("props==>", route);
   return (
     <SafeAreaView>
       <View style={styles.container}>
@@ -245,7 +323,7 @@ const ProfileScreen = ({route, navigation}) => {
                   marginTop: 12,
                 }}>
                 <Text style={{color: Colors.white}}>
-                  Choose Photo From Galery
+                  Choose Photo From Gallery
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -483,16 +561,18 @@ const ProfileScreen = ({route, navigation}) => {
               marginTop: hp('0.3%'),
             }}>
             <TextInput
-              placeholder="New Delhi"
+              placeholder="Choose Your City"
               placeholderTextColor="black"
               style={{
                 fontSize: hp('2.2%'),
-                width: wp('80%'),
+                width: wp('75%'),
                 alignSelf: 'center',
-                height: hp('7%'),
+                height: hp('6%'),
                 marginLeft: hp('2%'),
+                //backgroundColor:'purple'
               }}
-              onChangeText={text => setCity(text)}
+              onChangeText={city => setCity(city)}
+              value={city}
             />
             <TouchableOpacity
               style={{
@@ -500,7 +580,9 @@ const ProfileScreen = ({route, navigation}) => {
                 height: hp('6%'),
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginRight: hp('1%'),
+                marginRight: hp('2%'),
+                //backgroundColor:'green',
+                alignSelf:'center'
               }}
               onPress={() => navigation.navigate('City')}>
               <AntDesign name="caretdown" color="black" size={hp('2.5%')} />

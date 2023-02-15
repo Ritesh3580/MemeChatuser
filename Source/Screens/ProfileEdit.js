@@ -117,7 +117,7 @@ const ProfileEdit = props => {
       .get(fillDataUrl, { headers: { Authorization: `Bearer ${token}` } })
       .then(async res => {
         setProfile(res.data);
-        // console.log(res.data.imageUrl);
+        console.log(res.data);
         setId(res.data);
         await getFriends(res.data._id);
       })
@@ -616,7 +616,7 @@ const ProfileEdit = props => {
                         marginLeft: wp('1%'),
                         textAlignVertical: 'center',
                       }}>
-                      {profile?.coins || 0}
+                      {profile?.total_coins || 0}
                     </Text>
                   </View>
                   <View

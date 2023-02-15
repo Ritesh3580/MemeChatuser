@@ -69,6 +69,8 @@ const Report = ({ navigation, route }) => {
       cropping: true,
     }).then(async image => {
       setDoc(image);
+      console.log(image);
+      console.log(doc);
     }).catch(err => console.log("img picker-->>", err))
   };
 
@@ -85,7 +87,7 @@ const Report = ({ navigation, route }) => {
 
     var filename = doc?.path?.replace(/^.*[\\\/]/, '');
     let newFormData = new FormData();
-    newFormData.append('iamge', {
+    newFormData.append('image', {
       name: filename,
       type: doc.mime,
       uri:
@@ -96,6 +98,8 @@ const Report = ({ navigation, route }) => {
     newFormData.append('Choose_the_Reason', checked);
     newFormData.append('userId', profile._id);
     newFormData.append('targetId', targetUser._id);
+    console.log("report new form data",newFormData);
+    console.log(doc);
     try {
       const response = await axios({
         url: localBaseurl + 'addreport',

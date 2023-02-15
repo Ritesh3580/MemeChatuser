@@ -28,6 +28,7 @@ const City = props => {
   const [cityData, setCityData] = useState([]);
 
   let preData_location = props.route.params;
+  console.log(preData_location);
 
   useEffect(() => {
     getCities();
@@ -156,7 +157,9 @@ const City = props => {
           )}
           renderItem={({ item, index }) => (
             <Pressable
-              onPress={() => setSelectedItem(item)}
+              onPress={() =>{ 
+               props.navigation.navigate('Profile',item)
+                setSelectedItem(item)}}
               style={{
                 paddingLeft: 15,
                 paddingVertical: 10,
