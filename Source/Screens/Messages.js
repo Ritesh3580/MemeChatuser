@@ -93,6 +93,24 @@ const Messages = props => {
     findAllHost()
   }, []);
 
+  
+
+   MessageList=state.convs;
+   add=MessageList.map((item)=>{
+    return(
+        item.unreadMessageCount
+        )
+      })
+
+       sum=0;
+  for(let i=0; i<add.length; i += 1) {
+    sum += add[i]
+  }
+
+  console.log("sum===============================sum",sum)
+
+
+
   async function findAllHost() {
     const token = await AsyncStorage.getItem('token');
     axios
@@ -144,6 +162,23 @@ const Messages = props => {
       accessoryRight={<RightBox notify={item.notificationStatus} text={item.lastMessage &&  moment(item.lastMessage.timestamp).format('DD/MM/YYYY, hh:mm a')   || ''} />}
     />
   );
+
+  
+  //
+  //-----------------------------Sum of Messages------------------------------------//
+  //
+  let MessageList=state.convs;
+  let add=MessageList.map((item)=>{
+    return(
+        item.unreadMessageCount
+        )
+      })
+
+  let sum=0;
+  for(let i=0; i<add.length; i += 1) {
+    sum += add[i]
+  }
+
 
 
   return (
@@ -223,6 +258,9 @@ const Messages = props => {
               // <>
               // </>
           }
+
+
+         
 
           {/* <TouchableOpacity>
               <View

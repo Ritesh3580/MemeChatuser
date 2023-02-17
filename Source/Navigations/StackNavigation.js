@@ -25,6 +25,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Delete from '../Screens/Delete';
 import Edit from '../Screens/exc';
+import ProfileEditLocation from '../Screens/ProfileEditLocation'
 import ProfileEdit from '../Screens/ProfileEdit';
 import TopWeekly from '../Screens/TopWeekly';
 import WaitingForAcceptCall from '../Screens/WaitingForCall';
@@ -158,11 +159,11 @@ class StackNavigation extends Component {
           component={Edit}
           options={{headerShown: false}}
         />
-        {/* <Stack.Screen
-          name="ProfileEdit"
-          component={ProfileEdit}
+        <Stack.Screen
+          name="ProfileEditLocation"
+          component={ProfileEditLocation}
           options={{headerShown: false}}
-        /> */}
+        />
         <Stack.Screen
           name="City"
           component={City}

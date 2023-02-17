@@ -217,8 +217,9 @@ const History = props => {
           marginTop: hp('1%'),
         }}>
         <ImageBackground
-          source={{ uri: activeProfileData?.targetId?.userImage }}
-          // source={{ uri: "https://kickrproject.s3.amazonaws.com/f1f37338-1fbe-4142-b61c-724b8e8b0bd3.jpeg" }}
+          //source={{ uri: activeProfileData?.targetId?.userImage }}
+        
+           source={{ uri: "https://kickrproject.s3.amazonaws.com/f1f37338-1fbe-4142-b61c-724b8e8b0bd3.jpeg" }}
           resizeMode="cover"
           style={{ width: wp('84%'), height: hp('60%') }}
           imageStyle={{

@@ -38,16 +38,12 @@ const Edit = ({navigation, route}) => {
 
   useEffect(()=>{
     if(route.params?.city){
-      // console.log("city from city-->>",route.params.city);
-      if(route.params.city?.name){
-        let _loc = route.params.city.name +", " + route.params.city.state;
-        setLocation(_loc);
-      }
-      else{
-        setLocation(route.params.city);
-      }
+      let _loc = route.params.city.name +", " + route.params.city.state;
+      setLocation(_loc);
     }
   },[route.params?.city]);
+
+  // console.log("route.params.city",route.params.city)
 
   useEffect(() => {
     if(isFocused){
@@ -411,7 +407,7 @@ const Edit = ({navigation, route}) => {
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
-                onPress={() => navigation.navigate('City',location)}>
+                onPress={() => navigation.navigate('ProfileEditLocation',location)}>
                 <Text style={{fontSize: hp('2%'), color: '#000000'}}>
                   {profile && location}
                 </Text>

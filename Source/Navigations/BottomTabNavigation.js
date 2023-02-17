@@ -131,7 +131,7 @@ class BottomTabNavigation extends Component {
     fcmToken: '',
     isIncomingCall: false,
     messageData: null,
-    appState: AppState.currentState
+    appState: AppState.currentState,
   };
 
 
@@ -612,8 +612,17 @@ class BottomTabNavigation extends Component {
     return "flex";
   };
 
+
   HomeStack(props) {
+
     // console.log(props.route.params);
+
+        //
+  //-----------------------------Sum of Messages------------------------------------//
+  //
+
+  
+
     return (
       <Stack.Navigator>
         <Stack.Screen
@@ -756,7 +765,8 @@ class BottomTabNavigation extends Component {
     );
   };
 
-  render() {
+
+  render() { 
 
     if (this.state.user && this.state.zegoToken && this.state.fcmToken != '') {
       var appData = {
@@ -797,9 +807,7 @@ class BottomTabNavigation extends Component {
               tabBarStyle: [{ backgroundColor: '#fff' }, { display: this.getTabBarVisibility(route) }],
               tabBarBadgeStyle: { backgroundColor: 'blue' },
               tabBarIcon: ({ color, size }) => (
-                // <Ionicons name="heart" color={color} size={size} />
                 <MaterialCommunityIcons name="history" color={color} size={size}/>
-
               ),
             })}
           // options={{
@@ -816,6 +824,7 @@ class BottomTabNavigation extends Component {
             initialParams={{ 'appData': appData }}
             options={({ route }) => ({
               tabBarStyle: [{ backgroundColor: '#fff' }, { display: this.getTabBarVisibility(route) }],
+              tabBarBadge:[7],
               tabBarIcon: ({ color, size }) => (
                 <Ionicons
                   name="md-chatbubble-ellipses-outline"
