@@ -1,8 +1,8 @@
-import React, { Component, useEffect } from 'react';
+import React, { Component, useEffect, useLayoutEffect } from 'react';
 import { Alert, AppState, PermissionsAndroid, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNavigationContainerRef, getFocusedRouteNameFromRoute, StackActions } from '@react-navigation/native';
+import { createNavigationContainerRef, getFocusedRouteNameFromRoute, StackActions, useNavigation } from '@react-navigation/native';
 import { NavigationContainer } from '@react-navigation/native';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import LinearGradient from 'react-native-linear-gradient';
@@ -39,6 +39,12 @@ import BackgroundTimer from 'react-native-background-timer';
 import MissedCall from '../Screens/MissedCall';
 import Messages1 from '../Screens/Messages1';
 import AdminNotification from '../Screens/AdminNotification';
+import { Item } from 'react-native-paper/lib/typescript/components/List/List';
+import { CheckBox } from '@ui-kitten/components';
+import { white } from 'react-native-paper/lib/typescript/styles/colors';
+import { View } from 'react-native-animatable';
+import { color, Value } from 'react-native-reanimated';
+import { useState } from 'react';
 
 
 notifee.createChannel({
@@ -65,6 +71,8 @@ PushNotification.createChannel({
 // Store the RoomID in global section while the APP has been killed. 
 // Then you can read it on App component call 'componentDidMount', if this variable with an empty value means it launches by the user, otherwise, launch by FCM notification.
 var killedIncomingCallRoomId = '';
+
+
 
 // Display a message while APP has been killed, trigger by FCM
 async function onBackgroundMessageReceived(message) {
@@ -140,6 +148,8 @@ class BottomTabNavigation extends Component {
     AppState.addEventListener('change', this._handleAppStateChange);
     // _updateStatus();
     this._updateOnlineStatus();
+   
+ 
   };
 
   componentWillUnmount() {
@@ -243,6 +253,14 @@ class BottomTabNavigation extends Component {
     }
   };
 
+  // async getValue(){
+  //   const countval = await AsyncStorage.getItem('messageCount');
+  //   this.setState({
+  //     cmb: countval
+  //   })
+  //   // console.log("mess...........................++", cmb);
+  // }
+  
   async checkPermission() {
     // For android
     await this.grantPermissions();
@@ -360,6 +378,7 @@ class BottomTabNavigation extends Component {
     // Get fcm token
     await this.updateFcmToken();
     await this.setCurrentUser();
+    //await this.getValue();
     // Generate user id
     // this.setState({
     //    userID: Math.floor(Math.random() * 1000000).toString()
@@ -397,6 +416,24 @@ class BottomTabNavigation extends Component {
       })
 
   };
+
+  async getAllHostUser (){
+    const token = await AsyncStorage.getItem('token');
+    axios
+      .get(localBaseurl + 'findHostuser', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(async res => {
+        // console.log("ALL Hosts---->>>>>>", res.data);
+        setHostData(res.data);
+        setLoading(false);
+        storage.set('AllHost', JSON.stringify(res.data));
+      })
+      .catch(err => {
+        console.log('get all host error---->>>>', err.response.data);
+        setLoading(false);
+      });
+  }
 
   async setCurrentUser() {
     const token = await AsyncStorage.getItem('token');
@@ -612,6 +649,8 @@ class BottomTabNavigation extends Component {
     return "flex";
   };
 
+  
+
 
   HomeStack(props) {
 
@@ -621,7 +660,7 @@ class BottomTabNavigation extends Component {
   //-----------------------------Sum of Messages------------------------------------//
   //
 
-  
+
 
     return (
       <Stack.Navigator>
@@ -669,6 +708,93 @@ class BottomTabNavigation extends Component {
   };
 
   MessageStack(props) {
+
+    // const [loading, setLoading] = React.useState(true);
+    // const [hostData, setHostData] = React.useState(null);
+
+    // const [reportesNot, setReportesNot] = useState(0);
+
+
+    // const [state, zimAction] = useZIM();
+
+    // useEffect(() => {
+    //   zimAction.queryConversationList();
+    //  // findAllHost()    
+    // }, []);
+
+
+    //   let  MessageList=state.convs;
+    //   console.log("conaaa.........",MessageList);
+    //   let   add=MessageList.map((item)=>{
+    //     return(
+    //         item.unreadMessageCount
+    //         )
+    //       })
+    
+    //    let sum=0;
+    //   for(let i=0; i<add.length; i += 1) {
+    //     sum += add[i]
+    //   }
+    //   console.log("summ.............s.......555",sum);
+
+    //   const navigation = useNavigation();
+    //   useLayoutEffect(() => {
+    //     navigation.getParent().setOptions({
+    //       tabBarBadge: reportesNot,
+    //     });
+    //   }, [reportesNot])
+
+      
+
+    
+     
+  
+    
+    
+
+    // async function findAllHost() {
+    //   const token = await AsyncStorage.getItem('token');
+    //   axios
+    //     .get(localBaseurl + 'findHostuser', {
+    //       headers: { Authorization: `Bearer ${token}` },
+    //     })
+    //     .then(async res => {
+    //        console.log("ALL Hosts---->>>>>>", res.data);
+    //       setHostData(res.data);
+    //       setLoading(false);
+    //       storage.set('AllHost', JSON.stringify(res.data));
+    //     })
+    //     .catch(err => {
+    //       console.log('get all host error---->>>>', err.response.data);
+    //       setLoading(false);
+    //     });
+    // };
+    
+  
+    // const lastMessage = item => {
+    //   return item.lastMessage && item.lastMessage.message
+    //     ? item.lastMessage.message.length > 20
+    //       ? item.lastMessage.message.slice(0, 20) + '...'
+    //       : item.lastMessage.message
+    //     : '';
+    // };
+  
+    // const intoChat = (item) => {
+    //   const pressedHostData = hostData?.find(host=> host.userId == item.senderUserID);
+    //   // console.log(pressedHostData);
+    //   props.route.params['user'] = pressedHostData;
+    //     // console.log(props.route.params);
+    //   const convInfo = {
+    //     userData: props.route.params,
+    //     id: item.conversationID,
+    //     type: item.type,
+    //     name: item.conversationName
+    //   };
+    //   zimAction.clearConversationUnreadMessageCount(convInfo.id, convInfo.type).then(() => {
+    //     props.navigation.navigate('ChatRoom', convInfo);
+    //   });
+    // }
+
     return (
       <Stack.Navigator>
         <Stack.Screen
@@ -676,6 +802,7 @@ class BottomTabNavigation extends Component {
           initialParams={props.route.params}
           component={Messages}
           options={{ headerShown: false }}
+        //  badge = {{sum}}
         />
         <Stack.Screen
           name="ChatRoom"
@@ -767,6 +894,48 @@ class BottomTabNavigation extends Component {
 
 
   render() { 
+   
+   //  console.log("--------------------->",set);
+
+  //  const [loading, setLoading] = React.useState(true);
+  //  const [hostData, setHostData] = React.useState(null);
+ 
+  //  const [state, zimAction] = useZIM();
+ 
+  //  useEffect(() => {
+  //    zimAction.queryConversationList();
+  //    findAllHost()
+  //  }, []);
+
+  //  async function findAllHost(){
+  //   const token = await AsyncStorage.getItem('token');
+  //   axios
+  //     .get(localBaseurl + 'findHostuser', {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then(async res => {
+  //       // console.log("ALL Hosts---->>>>>>", res.data);
+  //       setHostData(res.data);
+  //       setLoading(false);
+  //       storage.set('AllHost', JSON.stringify(res.data));
+  //     })
+  //     .catch(err => {
+  //       console.log('get all host error---->>>>', err.response.data);
+  //       setLoading(false);
+  //     });
+  //  };
+
+  //  const getUnread = item =>{
+  //    return item.unreadMessageCount
+  //  } ;
+
+
+
+
+   
+    
+    
+    
 
     if (this.state.user && this.state.zegoToken && this.state.fcmToken != '') {
       var appData = {
@@ -818,20 +987,54 @@ class BottomTabNavigation extends Component {
           //   ),
           // }}
           />
+
+         
+      
+
+
           <Tab.Screen
             name="Call us"
             component={this.MessageStack}
             initialParams={{ 'appData': appData }}
-            options={({ route }) => ({
+            options={({ route, item }) => ({
               tabBarStyle: [{ backgroundColor: '#fff' }, { display: this.getTabBarVisibility(route) }],
-              tabBarBadge:[7],
+             
+              // tabBarBadge:[useLayoutEffect()],
+             tabBarBadge:renderBadge(),
               tabBarIcon: ({ color, size }) => (
+
                 <Ionicons
                   name="md-chatbubble-ellipses-outline"
                   color={color}
                   size={size}
+     
                 />
+              
               ),
+
+
+
+
+
+
+              // tabBarIcon:({badgeCount =1,color,size}) =>(
+              //   <View>
+
+              //    <Ionicons
+              //      name="md-chatbubble-ellipses-outline"
+              //      color={color}
+              //      size={size}
+              //    />
+              //      {badgeCount < 0 &&
+              //     (
+              //     <View style={{height:5, width:5}}>
+              //       <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>{badgeCount}</Text>
+              //     </View>
+              //     )
+              //   }
+                  
+              //   </View>
+              // )
             })}
           />
           <Tab.Screen
@@ -858,6 +1061,56 @@ class BottomTabNavigation extends Component {
 
 
 export default BottomTabNavigation;
+
+
+// export default function MessageStack(props) {
+//   const [reportesNot, setReportesNot] = useState(0);
+//   .....
+//   const navigation = useNavigation();
+  
+//     useLayoutEffect(() => {
+//       navigation.setOptions({
+//         tabBarBadge: reportesNot,
+//       });
+//     }, [reportesNot])
+
+function renderBadge(){
+  const [loading, setLoading] = React.useState(true);
+  const [hostData, setHostData] = React.useState(null);
+
+  const [state, zimAction] = useZIM();
+
+  useEffect(() => {
+    zimAction.queryConversationList();
+    //findAllHost()
+  }, []);
+
+  
+
+   let MessageList=state.convs;
+   console.log("mes............",MessageList);
+   let add=MessageList.map((item)=>{
+    return(
+        item.unreadMessageCount
+        )
+      })
+
+      let sum=0;
+  for(let i=0; i<add.length; i += 1) {
+    sum += add[i]
+  }
+
+  console.log("sum_____________________sum",sum)
+
+  if(sum >= 0){
+    return sum;
+  }
+  else{
+    return 0;
+  }
+
+ 
+}
 
 const navigationRef = createNavigationContainerRef()
 

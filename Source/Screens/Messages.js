@@ -107,7 +107,7 @@ const Messages = props => {
     sum += add[i]
   }
 
-  console.log("sum===============================sum",sum)
+  //console.log("sum===============================sum",sum)
 
 
 

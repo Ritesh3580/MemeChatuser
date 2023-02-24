@@ -50,6 +50,7 @@ const MissedCall = props => {
             .then(resp => {
                 // console.log(resp.data);
                 let data = resp.data.findUserVideocallstatus?.filter(item => item?.videocallstatus.hasOwnProperty('hostuserId'));
+                console.log("Missed call Data............................ ",data)
                 setMissedCallData(data.reverse());
                 setLoading(false);
             })

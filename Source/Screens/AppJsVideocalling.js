@@ -182,7 +182,8 @@ class AppJsVideocalling extends Component {
             fullScreenAction: {
                // For Android Activity other than the default:
                id: 'full_screen_body_press',
-               launchActivity: 'default',
+               launchActivity: 'custom-component',
+               
             },
             pressAction: {
                id: 'body_press',

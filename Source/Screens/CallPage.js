@@ -19,6 +19,7 @@ import ZegoExpressEngine, {
     ZegoTextureView,
     ZegoScenario,
     ZegoUpdateType,
+    ZegoEngineProfile,
 } from 'zego-express-engine-reactnative';
 import { ZegoExpressManager } from '../../ZegoExpressManager';
 import { ZegoMediaOptions } from '../../ZegoExpressManager/index.entity';
@@ -155,6 +156,12 @@ export default class CallPage extends Component {
     componentDidMount() {
         // this._startTimer();
         this.grantPermissions();
+        // ZegoExpressEngine.stopPublishingStream();
+
+    //     if(user.userID == null){
+    //         this.leaveRoom();
+    //         console.log("leave .........9");
+    //    }
 
         console.warn('init SDK');
         const profile = {
@@ -168,14 +175,21 @@ export default class CallPage extends Component {
 
             // Join room and wait...
             this.joinRoom();
-            setTimeout(()=>{
-                if(this.state.time == 0){
+            setTimeout(() => {
+                if (this.state.time == 0) {
                     SimpleToast.show("Host is not available at this moment");
                     this.leaveRoom();
+                    console.log("leave ................6");
                 }
-            },35000);
+            }, 15000);
         });
         // this._startTimer("20255941");
+
+        
+        
+       
+
+        
     };
     componentWillUnmount() {
         ZegoExpressManager.instance().leaveRoom();
@@ -190,6 +204,8 @@ export default class CallPage extends Component {
         ZegoExpressManager.instance().onRoomUserUpdate(
             (updateType, userList, roomID) => {
                 console.warn('out roomUserUpdate------------->', updateType, userList, roomID);
+                console.log("leave ................1");
+                console.log("get Call------------------>",onRoomUserUpdate);
                 if (updateType == ZegoUpdateType.Add) {
                     console.log("&&&&&&&&&", this.remoteViewRef.current, findNodeHandle(this.remoteViewRef.current))
                     userList.forEach(userID => {
@@ -198,17 +214,20 @@ export default class CallPage extends Component {
                             findNodeHandle(this.remoteViewRef.current),
                         );
                     });
-                    // console.log(this.userID);
+                     console.log(this.userID);
+                     console.log(this.roomID);
                     this.addCallHistory();
                     if (this.userID == roomID) {
                         this._startTimer(userList[0]);
                         this._coinCalculateOneTime(userList[0]);
                         this._coinCalculateInterval(userList[0]);
+                        console.log("leave ................2");
                     }
                     else {
                         this._startTimer(roomID);
                         this._coinCalculateOneTime(roomID);
                         this._coinCalculateInterval(roomID);
+                        console.log("leave ................3");
                     }
                 }
             },
@@ -216,6 +235,7 @@ export default class CallPage extends Component {
         ZegoExpressManager.instance().onRoomUserDeviceUpdate(
             (updateType, userID, roomID) => {
                 console.warn('out roomUserDeviceUpdate', updateType, userID, roomID);
+                console.log("leave ................4");
             },
         );
         ZegoExpressManager.instance().onRoomTokenWillExpire(
@@ -223,6 +243,7 @@ export default class CallPage extends Component {
                 console.warn('out roomTokenWillExpire', roomID, remainTimeInSecond);
                 const token = (await this.generateToken()).token;
                 ZegoExpressEngine.instance().renewToken(roomID, token);
+                console.log("leave ................5");
             },
         );
     }
@@ -263,11 +284,14 @@ export default class CallPage extends Component {
         ZegoExpressManager.instance()
             .enableCamera(!this.cameraEnable)
             .then(() => {
+                console.log("get Call------------------>",onRoomUserUpdate);
                 this.cameraEnable = !this.cameraEnable;
                 this.setState({
                     showPreview: this.cameraEnable,
                 });
             });
+
+            
     };
 
     async addCallHistory() {
@@ -306,7 +330,7 @@ export default class CallPage extends Component {
     // While user on the same room, they can talk to each other
     async joinRoom() {
         this.setState({
-            time:0,
+            time: 0,
         });
         // console.log("Join room: ", this.roomID, this.token)
         ZegoExpressManager.instance().joinRoom(this.roomID, this.token, { userID: this.userID, userName: this.userName },
@@ -326,12 +350,14 @@ export default class CallPage extends Component {
         this.setState({
             showPreview: false,
             showPlay: false,
-            time:"done"
+            time: "done",
+            
+            
         });
+         
 
-       
         ZegoExpressManager.instance()
-            .leaveRoom()
+            .leaveRoom(this.roomID)
             .then(async () => {
                 console.warn('Leave successful');
                 clearInterval(this.startTimer);
@@ -365,49 +391,49 @@ export default class CallPage extends Component {
             console.log("call page get profile--->>>", err.response.data);
         })
 
-        if(this.state.time !="done"){
+        if (this.state.time != "done") {
 
-         this.startTimer = setInterval(() => {
-            
-            let time = this.state.time;
-            console.log("start timer",time);
+            this.startTimer = setInterval(() => {
 
-            this.setState({ time: time + 1 });
-            let sec = Number(time) % 60;
-            let min = this._getMinutes(time);
-            let hours = this._getHours(time);
+                let time = this.state.time;
+                console.log("start timer", time);
 
-            if (sec < 10) {
-                this.setState({ sec: '0' + sec })
-            } else {
-                this.setState({ sec: sec })
-            }
-            if (min < 10) {
-                this.setState({ min: '0' + min })
-            } else if (min >= 60) {
-                let newMin = min % 60;
-                if (newMin < 10) {
-                    this.setState({ min: '0' + newMin })
+                this.setState({ time: time + 1 });
+                let sec = Number(time) % 60;
+                let min = this._getMinutes(time);
+                let hours = this._getHours(time);
+
+                if (sec < 10) {
+                    this.setState({ sec: '0' + sec })
                 } else {
-                    this.setState({ min: newMin })
+                    this.setState({ sec: sec })
                 }
-            } else {
-                this.setState({ min: min })
-            }
-            if (hours < 10) {
-                this.setState({ hour: '0' + hours })
-            } else {
-                this.setState({ hour: hours })
-            }
-        }, 1000);
+                if (min < 10) {
+                    this.setState({ min: '0' + min })
+                } else if (min >= 60) {
+                    let newMin = min % 60;
+                    if (newMin < 10) {
+                        this.setState({ min: '0' + newMin })
+                    } else {
+                        this.setState({ min: newMin })
+                    }
+                } else {
+                    this.setState({ min: min })
+                }
+                if (hours < 10) {
+                    this.setState({ hour: '0' + hours })
+                } else {
+                    this.setState({ hour: hours })
+                }
+            }, 1000);
 
-    }
-        
+        }
+
     };
 
     _coinCalculateOneTime = async (_id) => {
         // console.log("data-->>>",data);
-        if(this.state.time !="done"){
+        if (this.state.time != "done") {
             this.calculateCoin = setTimeout(async () => {
                 const token = await AsyncStorage.getItem('token');
                 let randomPromise = Promise.resolve(200);
@@ -439,7 +465,7 @@ export default class CallPage extends Component {
                         "total_minute": 1,
                         "userId": hostId
                     };
-                    console.log("body for api _coinCalculateOneTime---",body);
+                    console.log("body for api _coinCalculateOneTime---", body);
                     axios.put(baseurl + 'parMinuteCall', body, { headers: { Authorization: `Bearer ${token}` } })
                         .then(resp => {
                             console.log("reduce coin-->", resp.data);
@@ -452,20 +478,20 @@ export default class CallPage extends Component {
                 }).catch(err => {
                     console.log("call page get profile--->>>", err.response.data);
                 })
-            },6000); 
+            }, 6000);
         }
-            
-        
-        
+
+
+
         // const token = await AsyncStorage.getItem('token');
-        
+
     };
 
     _coinCalculateInterval = async (_id) => {
         // console.log("data-->>>",data);
-        
-            if(this.state.time !="done"){
-            this.calculateCoin = setInterval(async() => {
+
+        if (this.state.time != "done") {
+            this.calculateCoin = setInterval(async () => {
                 const token = await AsyncStorage.getItem('token');
                 let randomPromise = Promise.resolve(200);
                 // console.log(_id);
@@ -493,7 +519,7 @@ export default class CallPage extends Component {
                     // console.log("_coinCalculateInterval min--",min);
                     let body = {
                         "hostuser_fees": hostFees,
-                        "total_minute":1,
+                        "total_minute": 1,
                         "userId": hostId
                     };
                     // console.log(body);
@@ -508,14 +534,14 @@ export default class CallPage extends Component {
                 }).catch(err => {
                     console.log("call page get profile--->>>", err.response.data);
                 })
-            },60000);
+            }, 60000);
         }
-        
-        
+
+
 
 
         // const token = await AsyncStorage.getItem('token');
-        
+
     };
 
     _getMinutes = (sec) => {
