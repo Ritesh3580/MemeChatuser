@@ -369,6 +369,7 @@ const Setting = ({navigation}) => {
         </TouchableOpacity> */}
 
         <TouchableOpacity onPress={() => Linking.openURL(applyAsHostURL)}>
+          {/* <TouchableOpacity> */}
           <View
             style={{
               width: wp('100%'),
