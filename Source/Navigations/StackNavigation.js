@@ -37,6 +37,10 @@ import CallPage from '../Screens/CallPage';
 import HomePage from '../Screens/HomePage'
 import { createNavigationContainerRef, StackActions } from '@react-navigation/native';
 import MissedCall from '../Screens/MissedCall';
+import OtpVerification from '../Screens/OtpVerification';
+import InCommingVideoCall from '../Screens/InCommingVideoCall';
+import SignUpL from '../Screens/SignUpL';
+import OtpVerFityFB from '../Screens/OtpVerFityFB';
 
 
 const Stack = createNativeStackNavigator();
@@ -94,6 +98,10 @@ class StackNavigation extends Component {
           component={Profile}
           options={{headerShown: false}}
         />
+        <Stack.Screen 
+          name="OtpVerification"
+          component={OtpVerification}
+          options={{headerShown: false}}/>
         <Stack.Screen
           name="FollowNext"
           component={FollowNext}
@@ -109,6 +117,11 @@ class StackNavigation extends Component {
           component={ProfileDetails}
           options={{headerShown: false}}
         />
+        <Stack.Screen 
+        name='InCommingVideoCall'
+        component={InCommingVideoCall}
+        options={{headerShown: false}}
+        />
         {/* <Stack.Screen
           name="MyWallet"
           component={MyWallet}
@@ -118,6 +131,16 @@ class StackNavigation extends Component {
           name="Transaction"
           component={Transaction}
           options={{headerShown: false}}
+        />
+        <Stack.Screen 
+          name="SignUpL"
+          component={SignUpL}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen 
+        name="OtpVerFityFB"
+        component={OtpVerFityFB}
+        options={{headerShown:false}}
         />
         <Stack.Screen
           name="Report"

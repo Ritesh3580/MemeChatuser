@@ -702,6 +702,8 @@ const ProfileEdit = props => {
                 />
               </TouchableOpacity>
             </View>
+
+
           </View>
 
           {/* <View
@@ -769,6 +771,9 @@ const ProfileEdit = props => {
               </TouchableOpacity>
             </View>
           </View> */}
+
+        
+          
         </View>
       </View>
     </SafeAreaView>

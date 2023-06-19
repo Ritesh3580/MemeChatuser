@@ -229,7 +229,7 @@ const Edit = ({navigation, route}) => {
             </TouchableOpacity>
           </View>
         </View>
-        <View
+        {/* <View
           style={{
             width: wp('100%'),
             height: hp('7%'),
@@ -263,7 +263,7 @@ const Edit = ({navigation, route}) => {
               {profile && profile.emailId}
             </Text>
           </View>
-        </View>
+        </View> */}
 
         <View
           style={{
@@ -369,6 +369,53 @@ const Edit = ({navigation, route}) => {
             </Text>
           </View>
         </View>
+
+
+
+
+        <View
+          style={{
+            width: wp('100%'),
+            height: hp('7%'),
+            justifyContent: 'space-between',
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderBottomColor: '#C5D5D6',
+            borderBottomWidth: hp('0.1%'),
+          }}>
+          <View
+            style={{
+              height: hp('5%'),
+              width: wp('45%'),
+              justifyContent: 'center',
+              paddingLeft: wp('2.5%'),
+            }}>
+            <Text style={{fontSize: hp('2%'), color: '#999999'}}>
+              Email Id
+            </Text>
+          </View>
+
+          <View
+            style={{
+              height: hp('5%'),
+              width: wp('60%'),
+              justifyContent: 'center',
+              alignItems: 'flex-end',
+              paddingRight: wp('7.5%'),
+              //marginRight:1000
+            }}>
+            <Text style={{fontSize: hp('2%'), color: '#000000'}}>
+              {profile && profile.email}
+            </Text>
+          </View>
+        </View>
+
+
+
+
+
+
+
         <TouchableOpacity>
           <View
             style={{
@@ -394,7 +441,7 @@ const Edit = ({navigation, route}) => {
 
             <View
               style={{
-                height: hp('5%'),
+                height: hp('7%'),
                 width: wp('45%'),
                 justifyContent: 'center',
                 alignItems: 'flex-end',
@@ -403,7 +450,7 @@ const Edit = ({navigation, route}) => {
               <TouchableOpacity
                 style={{
                   flexDirection: 'row',
-                  height: hp('4%'),
+                  height: hp('7%'),
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}

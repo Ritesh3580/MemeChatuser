@@ -72,6 +72,8 @@ export default function Home(props) {
   // }, []);
 
   useEffect(() => {
+
+    
     zimAction.initEvent();
     zimAction.login({ userID: appData?.user?.userId, userName: appData?.user?.fullName }).then(() => {
       console.log("ZIM LOGIN SUCCESS");
@@ -295,6 +297,7 @@ export default function Home(props) {
               />
           }
         </View>
+        
         <FlatList
           showsVerticalScrollIndicator={false}
           keyExtractor={(item, index) => index}

@@ -205,7 +205,7 @@ export default class CallPage extends Component {
             (updateType, userList, roomID) => {
                 console.warn('out roomUserUpdate------------->', updateType, userList, roomID);
                 console.log("leave ................1");
-                console.log("get Call------------------>",onRoomUserUpdate);
+            //    console.log("get Call------------------>",onRoomUserUpdate);
                 if (updateType == ZegoUpdateType.Add) {
                     console.log("&&&&&&&&&", this.remoteViewRef.current, findNodeHandle(this.remoteViewRef.current))
                     userList.forEach(userID => {

@@ -10,8 +10,10 @@ import {
   FlatList,
   Linking,
   Platform,
+  ActivityIndicator,
+  TextInput,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
@@ -19,143 +21,252 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import axios from 'axios';
-import { localBaseurl } from '../config/baseurl';
-import { useEffect } from 'react';
+import {localBaseurl} from '../config/baseurl';
+import {useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNUpiPayment from 'react-native-upi-payment';
 
-import { _makeid } from '../ReusableComponent/U_ID';
-import { PAYEE_NAME, VPA } from '../config/PaymentInfo';
+import {_makeid} from '../ReusableComponent/U_ID';
+import {PAYEE_NAME, VPA} from '../config/PaymentInfo';
 import SimpleToast from 'react-native-simple-toast';
-import { useIsFocused } from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import Colors from '../Assetst/Constants/Colors';
-import { token } from '../config/baseurl';
-import { Time } from 'react-native-gifted-chat';
+import {token} from '../config/baseurl';
+import {Time} from 'react-native-gifted-chat';
 import moment from 'moment';
 
 const MyWallet = props => {
-
   const preData = props.route?.params;
-  // console.log(preData);
+   console.log(preData);
 
   const [coinsData, setCoinsData] = useState([]);
   const [coinsItemObj, setCoinsItemObj] = useState(null);
   const [customerCareNumber, setCustomerCareNumber] = useState('');
   const isFocused = useIsFocused();
+  const [isProcessing, setProcessing] = useState(false);
+  const [OrderIdKey , setOrderIdKey] = useState(null);
 
   useEffect(() => {
     if (isFocused) {
       getCoinsPrice();
-      _makePayment();
-      successCallback();
+      // _makePayment();
+      // successCallback();
     }
-  }, [isFocused,coinsItemObj]);
+  }, [isFocused, coinsItemObj]);
 
+  setTimeout(() => {
+   // setProcessing(true);
+    console.log("set timeout.......");
+  }, 3000);
+
+  //------------------------------------------GetWallet----------------------------------------------
   const getCoinsPrice = async () => {
     const token = await AsyncStorage.getItem('token');
     // console.log(token);
-    axios.get(localBaseurl + 'findAllWallet', { headers: { Authorization: `Bearer ${token}` } })
+    axios
+      .get(localBaseurl + 'findAllWallet', {
+        headers: {Authorization: `Bearer ${token}`},
+      })
       .then(resp => {
         // console.log("find All wallet"+resp.data);
-        console.log(resp.data);
+
+        //console.log(resp.data);
+
         setCoinsData(resp.data.getWallet);
       })
       .catch(err => {
-        console.log("get coin price error", err.response?.data);
+        console.log('get coin price error', err.response?.data);
+      });
+    axios
+      .get(localBaseurl + 'userGethelpline', {
+        headers: {Authorization: `Bearer ${token}`},
       })
-    axios.get(localBaseurl + 'userGethelpline', { headers: { Authorization: `Bearer ${token}` } })
       .then(resp => {
         // console.log(resp.data);
         setCustomerCareNumber(resp.data.getNumber[0]?.number);
       })
       .catch(err => {
-        console.log("contact no-->>>", err.response?.data);
-      })
+        console.log('contact no-->>>', err.response?.data);
+      });
   };
 
-  const addPaymentHistory = async(data) => {
+  const addPaymentHistory = async data => {
     const token = await AsyncStorage.getItem('token');
     let paymentInfo = {
-      "payment_history": [{
-        "txnId": data.txnId,
-        "resCode": data.responseCode,
-        "txnRef": data.txnRef,
-        "status": data.Status,
-        "price": coinsItemObj.price,
-        "coins": coinsItemObj.coins
-      }]
+      payment_history: [
+        {
+          txnId: data.txnId,
+          resCode: data.responseCode,
+          txnRef: data.txnRef,
+          status: data.Status,
+          price: coinsItemObj.price,
+          coins: coinsItemObj.coins,
+        },
+      ],
     };
-    axios.put(localBaseurl + 'addpaymenthistory', 
-    paymentInfo,
-    { headers: { Authorization: `Bearer ${token}` }, 
-     })
-      .then(resp => {
-        console.log("add payment history", resp.data);
-      })
-      .catch(err => {
-        console.log("add payment history error", err.response?.data);
-      })
-  };
-
-
-  const _makePayment = async(item) => {
-    console.log("item make payment---->>>>>>",item._id);
-    const refId = _makeid(16);
-    const date = moment()
-         .utcOffset('+05:30')
-         .format('YYYY-MM-DD:hh:mm:ss a');
-         console.log(date);
-    setCoinsItemObj(item);
-   console.log("coinsItemObj-----",coinsItemObj);
-    RNUpiPayment.initializePayment({
-      vpa: VPA, // it should be a merchant upi
-      payeeName: PAYEE_NAME,
-      amount: item.price,
-      transactionRef: refId,
-      time:date
-    }, successCallback, failureCallback);
-  };
-
-  const successCallback = async (data) => {
-    console.log("PAYMENT SUCCESS--->>>", data);
-    console.log(coinsItemObj);
-    if (!coinsItemObj) {
-      console.log("Coins item didn't update!, Please check state update...");
-      return;
-    };
-    const token = await AsyncStorage.getItem('token');
-    console.log("wallet token",token);
-    console.log(coinsItemObj._id);
-    
     axios
-    .put(localBaseurl + `applyNewRecharge`,
-    {"walletId": coinsItemObj._id},
-    {headers: { Authorization: `Bearer ${token}`}}
-    )
-      .then(async resp => {
-        console.log("Recharge-->>", resp.data);
-        await addPaymentHistory(data);
+      .put(localBaseurl + 'addpaymenthistory', paymentInfo, {
+        headers: {Authorization: `Bearer ${token}`},
+      })
+      .then(resp => {
+        console.log('add payment history', resp.data);
       })
       .catch(err => {
-        console.log("recharge error-->>", err.response?.data);
-      })
+        console.log('add payment history error', err.response?.data);
+      });
+  };
+  //-----------------------------------------PAYF PAYMENT CHECK STATUS------------------------------------
+
+  const _checkMayStatus = async () => {
+ 
+    const token = await AsyncStorage.getItem('token');
+    console.log("token 2..................",token);
+
+  //  console.log("item id", item);
+      const headers = {  Authorization: `Bearer ${token}`};
+      
+
+
+    try{
+      const response = await axios.get(
+        `https://api.memechat.co.in/api/orderDetail/`+ OrderIdKey,{headers});
+
+       //console.log("responses payenmmm",response.data);
+       console.log("ress..............................",response.data.data.OrderPaymentStatusText);
+       if(response.data.data.OrderPaymentStatusText == "Paid"){
+            setProcessing(false);
+            SimpleToast.show("Payment Processed Successfully!", SimpleToast.LONG);
+       }
+       else {
+        SimpleToast.show("Payment Is Pending!", SimpleToast.LONG);
+       }
+    }
+    catch(error){
+        console.log("err...........",error);
+    }
+  }
+
+  //-------------------------------------------PAYG PAYMENT GATEWAY INTEGRATION-----------------------------------
+  const _makePayment = async item => {
+    console.log('item make payment---->>>>>>', item);
+    const refId = _makeid(16);
+    const date = moment().utcOffset('+05:30').format('YYYY-MM-DD:hh:mm:ss a');
+    console.log(date);
+
+    setCoinsItemObj(item);
+
+    console.log('coinsItemObj-----', coinsItemObj);
+    // RNUpiPayment.initializePayment({
+    //   vpa: VPA, // it should be a merchant upi
+    //   payeeName: PAYEE_NAME,
+    //   amount: item.price,
+    //   transactionRef: refId,
+    //   time:date
+    // }, successCallback, failureCallback);
+
+    // const postData = async () => {
+
+    const token = await AsyncStorage.getItem('token');
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    console.log('token,,,,', token);
+
+    //   axios
+    //   .put(localBaseurl + `applyNewRecharge`,
+    //   {"walletId": coinsItemObj._id},
+    //   {headers: { Authorization: `Bearer ${token}`}}
+    //   )
+
+    try {
+      const response = await axios.post(
+        `https://api.memechat.co.in/api/createOrder`,
+        {
+          RedirectUrl: '',
+          OrderAmount: 1.0,
+          ProductData: {
+            PaymentReason: 'CoinPayment',
+            ItemId: '01',
+            AppName: 'memeChat',
+          },
+          CustomerData: {
+            MobileNo: preData.phone,
+            Email: preData.email,
+            CustomerId: item._id,
+          },
+        },
+        {headers: {Authorization: `Bearer ${token}`}},
+      );
+
+      // Handle response
+      console.log('response data......-----', response.data);
+
+      if (response.data.message == 'Payment Url Created') {
+        const link = response.data.paymnetProcessUrl;
+        console.log('jkasjaskjfkas Link', link);
+        Linking.openURL(link)
+          .then(result => {
+            console.log('result.....//////////', result);
+            setProcessing(true);
+            // _checkMayStatus(response.data.orderKeyId);
+            setOrderIdKey(response.data.orderKeyId);
+
+          })
+
+          .catch(error => {
+            // Handle error
+            console.error('Error opening URL:', error);
+          });
+      }
+    } catch (error) {
+      // Handle error
+      console.error('--===========Err', error);
+    }
+
+    // };
   };
 
-  const failureCallback = async (data) => {
-    console.log("PAYMENT FAILURE--->>>", data);
-    console.log(coinsItemObj);
-    console.log(coinsItemObj._id);
-    if(data.message){
-      SimpleToast.show(data.message, SimpleToast.LONG);
-    }
-    else{
-      await addPaymentHistory(data);
-      SimpleToast.show("Payment is failed", SimpleToast.LONG)
-    }
-  };
+  // const successCallback = async (data) => {
+  //   console.log("PAYMENT SUCCESS--->>>", data);
+  //   console.log(coinsItemObj);
+  //   if (!coinsItemObj) {
+  //     console.log("Coins item didn't update!, Please check state update...");
+  //     return;
+  //   };
+  //   const token = await AsyncStorage.getItem('token');
+  //   console.log("wallet token",token);
+  //   console.log(coinsItemObj._id);
+
+  //   axios
+  //   .put(localBaseurl + `applyNewRecharge`,
+  //   {"walletId": coinsItemObj._id},
+  //   {headers: { Authorization: `Bearer ${token}`}}
+  //   )
+  //     .then(async resp => {
+  //       console.log("Recharge-->>", resp.data);
+  //       await addPaymentHistory(data);
+  //     })
+  //     .catch(err => {
+  //       console.log("recharge error-->>", err.response?.data);
+  //     })
+  // };
+
+  // const failureCallback = async (data) => {
+  //   console.log("PAYMENT FAILURE--->>>", data);
+  //   console.log(coinsItemObj);
+  //   console.log(coinsItemObj._id);
+  //   if(data.message){
+  //     SimpleToast.show(data.message, SimpleToast.LONG);
+  //   }
+  //   else{
+  //     await addPaymentHistory(data);
+  //     SimpleToast.show("Payment is failed", SimpleToast.LONG)
+  //   }
+  // };
 
   const _openDialer = () => {
-    if(!customerCareNumber){
+    if (!customerCareNumber) {
       return;
     }
     let number = '';
@@ -167,14 +278,48 @@ const MyWallet = props => {
     Linking.openURL(number);
   };
 
+  async function CancelPaymemt(){
+    SimpleToast.show("Payment Cancel!", SimpleToast.LONG);
+    setProcessing(false);
+    setOrderIdKey(null);
+  }
+
   // console.log(preData);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{flex: 1}}>
       <StatusBar backgroundColor="#b15eff" />
-      <View style={styles.container}>
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        {isProcessing ? (
+          <>
+            <ActivityIndicator size="large" color="blue" />
+            <Text style={{marginTop: 10, fontSize:18, fontWeight:'bold', color:'black'}}>Processing Payment...</Text>
+            <Text style={{marginTop: 10, fontSize:18, fontWeight:'bold', color:'black'}}>{OrderIdKey}</Text>
+            
+            <View style={{flexDirection:'row', height:60, alignItems:'center', justifyContent:'space-between'}}>
+            <TouchableOpacity style={{height:30, width:150, backgroundColor:Colors.lightBlue,borderRadius:20 , justifyContent:'center', marginRight:17}} onPress={_checkMayStatus}>
+              <Text style={{textAlign:'center', color:'white'}}>Confirm Payment </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{height:30, width:150, backgroundColor:Colors.lightBlue,borderRadius:20 , justifyContent:'center'}} onPress={CancelPaymemt}>
+              <Text style={{textAlign:'center', color:'white'}}>Cancel Payment</Text>
+            </TouchableOpacity>
+            </View>
+         
+          </>
+        ) : null
+        //: (
+          // <Text style>Payment Processed Successfully!</Text>
+          // SimpleToast.show("Payment Processed Successfully!", SimpleToast.LONG)
+          
+        //)
+      }
+      </View>
+
+    { isProcessing == false ? 
+    
+    <View style={styles.container}>
         <View style={styles.head}>
-          <View style={{ width: wp('30%'), height: hp('4%') }}>
+          <View style={{width: wp('30%'), height: hp('4%')}}>
             <TouchableOpacity
               onPress={() => props.navigation.goBack()}
               style={{
@@ -188,7 +333,7 @@ const MyWallet = props => {
             </TouchableOpacity>
           </View>
           <View
-            style={{ width: wp('40%'), height: hp('4%'), alignItems: 'center' }}>
+            style={{width: wp('40%'), height: hp('4%'), alignItems: 'center'}}>
             <Text
               style={{
                 fontFamily: 'Roboto-Bold',
@@ -199,7 +344,7 @@ const MyWallet = props => {
               My Wallet
             </Text>
           </View>
-          <View style={{ width: wp('30%'), height: hp('4%') }}></View>
+          <View style={{width: wp('30%'), height: hp('4%')}}></View>
         </View>
 
         <TouchableOpacity>
@@ -250,7 +395,7 @@ const MyWallet = props => {
                 }}>
                 <Image
                   source={require('../Assetst/Images/coins.png')}
-                  style={{ width: hp('2.5%'), height: hp('2.5%') }}
+                  style={{width: hp('2.5%'), height: hp('2.5%')}}
                 />
                 <Text
                   style={{
@@ -337,20 +482,21 @@ const MyWallet = props => {
           Recharge
         </Text>
 
-        <View style={{ width: wp('100%'), height: hp('41%'), marginTop: 10 }}>
+        <View style={{width: wp('100%'), height: hp('41%'), marginTop: 10}}>
           <FlatList
             data={coinsData}
             keyExtractor={(item, index) => index}
             numColumns={2}
             contentContainerStyle={{
-              alignItems: 'center'
+              alignItems: 'center',
             }}
-            renderItem={({ item, index }) => (
+            renderItem={({item, index}) => (
               <TouchableOpacity
                 key={index}
-                onPress={() => { _makePayment(item) }}
-                style={{ marginHorizontal: '4%', marginVertical: 5 }}
-              >
+                onPress={() => {
+                  _makePayment(item);
+                }}
+                style={{marginHorizontal: '4%', marginVertical: 5}}>
                 <View
                   style={{
                     width: wp('44%'),
@@ -371,7 +517,7 @@ const MyWallet = props => {
                     }}>
                     <Image
                       source={require('../Assetst/Images/coins.png')}
-                      style={{ width: hp('2.5%'), height: hp('2.5%') }}
+                      style={{width: hp('2.5%'), height: hp('2.5%')}}
                     />
                     <Text
                       style={{
@@ -397,6 +543,8 @@ const MyWallet = props => {
           />
         </View>
 
+        <Text>eklghrgiherhi</Text>
+
         <Text
           style={{
             fontSize: hp('1.8%'),
@@ -409,7 +557,7 @@ const MyWallet = props => {
         </Text>
 
         <TouchableOpacity
-        onPress={_openDialer}
+          onPress={_openDialer}
           style={{
             flexDirection: 'row',
             alignSelf: 'center',
@@ -429,8 +577,8 @@ const MyWallet = props => {
             Customer Services.
           </Text>
         </TouchableOpacity>
-        
       </View>
+       : null}
     </SafeAreaView>
   );
 };

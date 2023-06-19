@@ -14,7 +14,7 @@ import {
 } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const Messages1 = props => {
+const Messages1 = ({navigation}) => {
   return (
     <SafeAreaView>
       <View style={styles.container}>
@@ -26,7 +26,7 @@ const Messages1 = props => {
               //backgroundColor: 'green',
             }}>
             <TouchableOpacity
-              onPress={() => props.navigation.goBack('Messages')}
+              onPress={() =>navigation.goBack()}
               style={{
                 width: wp('8%'),
                 height: hp('4%'),
@@ -34,7 +34,7 @@ const Messages1 = props => {
                 alignItems: 'center',
               }}>
               <Ionicons name="md-chevron-back" size={hp('3.2%')} color="#fff" />
-              {/* <Text style={{ fontFamily: "Roboto-Regular", fontSize: hp('2%'), color: Colors.primaryColor8 }}>Back</Text> */}
+              
             </TouchableOpacity>
           </View>
           <View
@@ -64,12 +64,13 @@ const Messages1 = props => {
               paddingRight: wp('2%'),
             }}>
             <TouchableOpacity
-              onPress={() => props.navigation.navigate('Messages1')}
+              onPress={() => navigation.goBack()}
               style={{
                 width: wp('8%'),
                 height: hp('4%'),
                 justifyContent: 'center',
                 alignItems: 'center',
+                //backgroundColor:'pink'
               }}></TouchableOpacity>
           </View>
         </View>
@@ -80,7 +81,7 @@ const Messages1 = props => {
             backgroundColor: '#fff',
           }}>
           <ScrollView>
-            <TouchableOpacity onPress={()=>props.navigation.navigate('AdminNotification')}>
+            <TouchableOpacity onPress={()=>navigation.navigate('AdminNotification')}>
               <View
                 style={{
                   width: wp('100%'),
@@ -132,7 +133,7 @@ const Messages1 = props => {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={()=>props.navigation.navigate('MissedCall')}>
+            <TouchableOpacity onPress={()=>navigation.navigate('MissedCall')}>
               <View
                 style={{
                   width: wp('100%'),

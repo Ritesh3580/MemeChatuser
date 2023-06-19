@@ -79,7 +79,7 @@ const City = props => {
           <TouchableOpacity
             onPress={() => {
               props.navigation.navigate({
-                name: 'exc',
+                name: 'Profile',
                 params: { city: selectedItem },
                 merged: true
               })

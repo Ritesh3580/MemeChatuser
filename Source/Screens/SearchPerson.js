@@ -74,6 +74,7 @@ const SearchPerson = props => {
               height: hp('6%'),
               alignItems: 'center',
               justifyContent: 'center',
+              //backgroundColor:'pink'
             }}
             onPress={() => props.navigation.navigate('BottomTabNavigation')}>
             <FontAwesome5Icon

@@ -10,6 +10,7 @@ import {
   ImageBackground,
   StatusBar,
   TextInput,
+  ScrollView,
 } from 'react-native';
 import {
   heightPercentageToDP as hp,
@@ -27,10 +28,20 @@ import moment from 'moment';
 import axios from 'axios';
 import {baseurl, token, localBaseurl} from '../config/baseurl';
 const profileDataUrl = localBaseurl + 'register_with_phone';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useRoute } from '@react-navigation/native';
+import DateTimePickerr from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
+
+
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const ProfileScreen = ({route, navigation}) => {
-  const [date, setDate] = useState();
+  // const [date, setDate] = useState();
+
+  const routee = useRoute();
+ // const result = routee.params?.email;
+
+  //console.log("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--==-=-=-===-=-====-=",result);
   const [profileName, setProfileName] = useState('');
   const [city, setCity] = useState('');
   const [selectedGender, setSelectedGender] = useState('');
@@ -41,6 +52,23 @@ const ProfileScreen = ({route, navigation}) => {
   const [myColor, setMyColor] = useState(false);
   const[profile,setProfile]=useState('');
   const isFocused = useIsFocused();
+
+  const [EmailId,setEmailId] =  useState(routee.params?.email);
+
+  const [date, setDate] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
+  const formattedDate = format(date, 'dd/MM/yyyy');
+
+  const handleDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShowPicker(false);
+    setDate(currentDate);
+  };
+
+  const handlePress = () => {
+    setShowPicker(true);
+  };
+
   //    const { tokenIdName } = route.params;
 
   const Male = () => {
@@ -124,15 +152,16 @@ const ProfileScreen = ({route, navigation}) => {
     setSelected(!selected);
   };
   const userProfileData = async () => {
-    let p = date;
-    p = p.split('/');
-    p = p.join('-');
+    // let p = date;
+    // p = p.split('/');
+    // p = p.join('-');
     // console.log(p);
     const userData = {
       fullName: profileName,
       dateOfBirth: date,
       gender: isCheckSelected,
       city: city,
+      email: EmailId
     };
     // console.log(userData);
     const token = await AsyncStorage.getItem('token');
@@ -166,10 +195,6 @@ const ProfileScreen = ({route, navigation}) => {
 
 
 
-
-
-
-
   useEffect(()=>{
     if(route.params == undefined){
       // console.log("city from city-->>",route.params.city);
@@ -179,62 +204,14 @@ const ProfileScreen = ({route, navigation}) => {
     }
   },[route]);
 
-  // useEffect(() => {
-  //   if(isFocused){
-  //     _getUserProfile();
-  //   }
-  // }, [isFocused]);
-
-  // const _getUserProfile = async () => {
-  //   const token = await AsyncStorage.getItem('token');
-  //   axios
-  //     .get(localBaseurl + 'showProfile', {headers: {Authorization: `Bearer ${token}`}})
-  //     .then(res => {
-  //       setProfile(res.data);
-  //       setName(res.data.fullName);
-  //       setId(res.data.userId);
-  //       setGender(res.data.gender);
-  //       setPhoneNo(res.data.phone);
-  //       !route.params?.city && setCity(res.data.city);
-  //       setEmail(res.data.emailId);
-  //       setDate(res.data.dateOfBirth);
-  //       res.data.relationshipStatus && setselectedRelationship(res.data.relationshipStatus);
-  //     });
-  // };
-
-  // const nameUser = E => {
-  //   setName(E.nativeEvent.text);
-  // };
-
-  // const realtionShip = R => {
-  //   setselectedRelationship(R);
-  // };
-
-
-  // const _updateProfile = async () => {
-  //   if (selectedRelationship == '') {
-  //     alert('Select your relationship status');
-  //     return;
-  //   }
-  //   const token = await AsyncStorage.getItem('token');
-  //   const userData = {
-  //   city: location,
-     
-  //   };
-  //   axios
-  //     .put(localBaseurl + 'updateduserPeofile', userData, {
-  //       headers: {Authorization: `Bearer ${token}`},
-  //     })
-  //     .then(res => {
-  //       SimpleToast.show('Successfully Updated');
-  //       navigation.navigate('ProfileEdit');
-  //     });
-  // };
 
   
 console.log("props==>", route);
   return (
     <SafeAreaView>
+      <ScrollView>
+
+    
       <View style={styles.container}>
         <StatusBar backgroundColor={Colors.lightPurples} />
 
@@ -349,6 +326,7 @@ console.log("props==>", route);
             height: hp('25%'),
             justifyContent: 'center',
             alignItems: 'center',
+            
             //backgroundColor: 'green',
           }}>
           <TouchableOpacity
@@ -358,7 +336,8 @@ console.log("props==>", route);
               justifyContent: 'center',
               alignSelf: 'center',
               alignItems: 'center',
-              // backgroundColor: 'red',
+               //backgroundColor: 'red',
+               borderRadius:30
               // marginTop: hp('1%')
             }}
             onPress={toggleModal}>
@@ -369,14 +348,16 @@ console.log("props==>", route);
                   height: hp('12%'),
                   justifyContent: 'center',
                   alignItems: 'center',
-                  backgroundColor: 'blue',
+                 // backgroundColor: 'blue',
+                
                 }}>
                 <Image
                   source={require('../Assetst/Images/6.png')}
                   style={{
                     width: hp('12%'),
                     height: hp('12%'),
-                    borderRadius: hp('1%'),
+                    borderRadius: hp('6%'),
+
                   }}
                 />
               </View>
@@ -420,7 +401,7 @@ console.log("props==>", route);
           style={{
             width: wp('100%'),
             height: hp('12%'),
-            marginTop: hp('0.5%'),
+            marginTop: hp('0.0%'),
             // backgroundColor: 'pink',
           }}>
           <View
@@ -463,6 +444,7 @@ console.log("props==>", route);
                 marginLeft: hp('2%'),
                 color: '#000'
               }}
+            
               onChangeText={text => setProfileName(text)}
               // keyboardType='email-address'
               // onChangeText={handleChange('email')}
@@ -492,6 +474,8 @@ console.log("props==>", route);
               Date of Birth
             </Text>
           </View>
+
+          
           <View
             style={{
               width: wp('96%'),
@@ -503,14 +487,22 @@ console.log("props==>", route);
               borderWidth: 2,
               alignSelf: 'center',
               borderRadius: hp('1.5%'),
+              flex:1,
+              flexDirection:'row',
+              justifyContent:'space-between',
+              
+              
             }}>
-            <MonthDateYearField
+              
+            {/* <MonthDateYearField
+            placeholderTextColor='black'
               style={{
                 width: wp('22%'),
                 borderRadius: 8,
                 borderColor: '#cacaca',
                 borderWidth: 1,
-                color:'##000'
+                color:'#000',
+                
               }}
               //onSubmit={(value) => console.log(value)}
               handleErrors={() => console.log('ERROR')}
@@ -523,9 +515,102 @@ console.log("props==>", route);
                 setDate(moment(value).format('MM/DD/YYYY'))
               }}
               // onSubmit={(text) => fDate(text)}
+            /> */}
+
+            {
+              date && console.log("Yess")
+            }
+
+            <Text style={{color:'black', marginLeft:20}}>{formattedDate}</Text>
+             {
+              console.log("date..............",formattedDate)
+             }
+
+              {showPicker && (
+                  <DateTimePickerr
+                    value={date}
+                    mode='date'
+                    dateFormat='DD-MM-YYYY'
+                    display="default"
+                    onChange={handleDateChange}
+                  />
+                )}
+
+          
+
+             <TouchableOpacity title="Submit" onPress={handlePress}>
+             <Icon name="calendar-month" color='black' size={26} style={{marginRight:22}} />
+             </TouchableOpacity>
+          
+          </View>
+        </View>
+
+
+       {/* ...............................Email Id Enter ................................. */}
+
+
+       <View
+          style={{
+            width: wp('100%'),
+            height: hp('12%'),
+            marginTop: hp('0.5%'),
+            // backgroundColor: 'pink',
+          }}>
+          <View
+            style={{
+              width: wp('96%'),
+              height: hp('4%'),
+              justifyContent: 'center',
+              alignSelf: 'center',
+              marginTop: hp('0.3%'),
+            }}>
+            <Text
+              style={{
+                color: "#000",
+                fontSize: hp('2.2%'),
+                marginLeft: hp('0.3%'),
+                fontWeight: 'normal',
+              }}>
+              Enter  Email address
+            </Text>
+          </View>
+          <View
+            style={{
+              width: wp('96%'),
+              alignSelf: 'center',
+              // backgroundColor: Colors.primaryColor8,
+              borderRadius: hp('1.5%'),
+              borderWidth: 1,
+              borderColor: Colors.darkPurple,
+              height: hp('7%'),
+              marginTop: hp('0.3%'),
+            }}>
+            <TextInput
+              placeholder="example@gmail.com"
+              placeholderTextColor="gray"
+              value={EmailId}
+              style={{
+                fontSize: hp('2.2%'),
+                width: wp('96%'),
+                alignSelf: 'center',
+                height: hp('7%'),
+                marginLeft: hp('2%'),
+                color: '#000'
+              }}
+              onChangeText={text => setEmailId(text)}
+              // keyboardType='email-address'
+              // onChangeText={handleChange('email')}
+              // onBlur={handleBlur('email')}
+              // value={values.email}
             />
           </View>
         </View>
+
+
+
+
+
+        
 
         <View
           style={{width: wp('100%'), height: hp('12%'), marginTop: hp('0.5%')}}>
@@ -591,7 +676,7 @@ console.log("props==>", route);
         </View>
 
         <View
-          style={{width: wp('100%'), height: hp('14%'), marginTop: hp('0.5%')}}>
+          style={{width: wp('100%'), height: hp('14%'), marginTop: hp('0.1%')}}>
           <View
             style={{
               width: wp('96%'),
@@ -699,7 +784,7 @@ console.log("props==>", route);
             height: hp('7%'),
             backgroundColor: Colors.lightPurples,
             alignSelf: 'center',
-            marginTop: hp('12%'),
+            marginTop: hp('0%'),
             justifyContent: 'center',
             alignItems: 'center',
             borderRadius: hp('1.5%'),
@@ -710,6 +795,8 @@ console.log("props==>", route);
           </Text>
         </TouchableOpacity>
       </View>
+
+      </ScrollView>
     </SafeAreaView>
   );
 };

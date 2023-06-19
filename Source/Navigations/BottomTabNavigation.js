@@ -80,7 +80,7 @@ async function onBackgroundMessageReceived(message) {
   if (message.data?.roomID) {
     killedIncomingCallRoomId = message.data.roomID;
     notifee.displayNotification({
-      title: '<p style="color: #4caf50;"><b>' + '📞 ' + message.data.callerUserName + ' incoming call..' + '</span></p></b></p>',
+      title: '<p style="color: #4caf50;"><b>' + '📞 ' + message.data.callerUserName + ' incomi----ng call..' + '</span></p></b></p>',
       body: 'Tap to view contact.',
       data: { "roomID": message.data.roomID, "callType": message.data.callType },
       android: {
@@ -89,7 +89,7 @@ async function onBackgroundMessageReceived(message) {
         // Launch the app on lock screen
         fullScreenAction: {
           // For Android Activity other than the default:
-          id: 'full_screen_body_press',
+          id: 'full_screen_boddefaulty_press',
           launchActivity: 'default',
         },
         pressAction: {
@@ -132,6 +132,8 @@ class BottomTabNavigation extends Component {
   routesInstance;
   navigationRef;
   messageListener;
+
+  
 
   state = {
     user: null,
@@ -194,6 +196,29 @@ class BottomTabNavigation extends Component {
     }
   }
 
+  handleIncomingCallScrr(detail){
+
+    if(this.state.user && this.state.zegoToken && this.state.fcmToken != ''){
+
+      console.log("Yes..................................++++valisd",this.state.user);
+
+      var appData = {
+        appID: zego_config.appID,
+        serverUrl: zego_config.serverUrl,
+        user: this.state.user,
+        zegoToken: this.state.zegoToken,
+      };
+
+    }
+
+    console.log('Navigate to the call screen With incomming call',appData);
+    pushToScreenVc('InCommingVideoCall',{
+      'detail' : detail,
+      'appData': appData,
+      
+    });
+  }
+
   handleIncomingCall(roomID) {
     console.log('Navigate to home with incoming call..........');
     pushToScreen('Home', { 'roomID': roomID });
@@ -251,7 +276,13 @@ class BottomTabNavigation extends Component {
     if (killedIncomingCallRoomId != '') {
       this.handleIncomingCall(killedIncomingCallRoomId);
     }
+
+    if (killedIncomingCallRoomId != '') {
+      this.handleIncomingCallScrr(killedIncomingCallRoomId);
+    }
   };
+
+  
 
   // async getValue(){
   //   const countval = await AsyncStorage.getItem('messageCount');
@@ -474,12 +505,26 @@ class BottomTabNavigation extends Component {
   };
 
   async setupNotification() {
+
+  
+
+   // console.log("-------------////////////////////////////////////////-------token",this.state.zegoToken);
+
     notifee.onForegroundEvent(async ({ type, detail }) => {
       if (type === EventType.PRESS) {
         console.log('User press on froeground event: ', detail);
         this.timer !== undefined ? clearTimeout(this.timer) : null;
         this.background_timer !== undefined ? BackgroundTimer.clearTimeout(this.background_timer) : null;
-        await notifee.cancelAllNotifications();
+        {
+          console.log("Presss...........................///sssss");
+
+          this.handleIncomingCallScrr(detail);
+
+          await notifee.cancelAllNotifications();
+
+          
+        }
+       // await notifee.cancelAllNotifications();
       } else if (type == EventType.ACTION_PRESS && detail.pressAction.id) {
         if (detail.pressAction.id == 'accept') {
           console.log('Accept the call...', detail.notification.data.roomID);
@@ -587,11 +632,13 @@ class BottomTabNavigation extends Component {
     console.log("Foreground Message:---->>>> ", message);
     if (message.data?.roomID) {
       notifee.displayNotification({
-        title: '<p style="color: #4caf50;"><b>' + '📞 ' + message.data.callerUserName + ' incoming call..' + '</span></p></b></p>',
+      
+        title: '<p style="color: #4caf50, height: 1000px;"><b>' + '📞 ' + message.data.callerUserName + ' incomi+++ng call..' + '</span></p></b></p>',
         body: 'Tap to view contact.',
         data: { "roomID": message.data.roomID, "callType": message.data.callType },
         android: {
           channelId: 'callinvite',
+          //fullScreenIntent: true,
           largeIcon: message.data.callerIconUrl,
           // Launch the app on lock screen
           fullScreenAction: {
@@ -599,6 +646,7 @@ class BottomTabNavigation extends Component {
             id: 'full_screen_body_press',
             launchActivity: 'default',
           },
+          
           pressAction: {
             id: 'body_press',
             launchActivity: 'default',
@@ -631,6 +679,84 @@ class BottomTabNavigation extends Component {
         // PushNotification.clearAllNotifications();
       }
     }
+    // const [modalVisible, setModalVisible] = useState(false);
+
+
+    // return (
+    //   <View style={{ centeredView: {
+    //     flex: 1,
+    //     justifyContent: 'center',
+    //     alignItems: 'center',
+    //     marginTop: 22,
+    //   },}}>
+    //     <Modal
+    //       animationType="slide"
+    //       transparent={true}
+    //       visible={modalVisible}
+    //       onRequestClose={() => {
+    //         Alert.alert('Modal has been closed.');
+    //         setModalVisible(!modalVisible);
+    //       }}>
+    //       <View style={{ centeredView: {
+    //           flex: 1,
+    //           justifyContent: 'center',
+    //           alignItems: 'center',
+    //           marginTop: 22,
+    //         },}}>
+    //         <View style={{  modalView: {
+    //               margin: 20,
+    //               backgroundColor: 'white',
+    //               borderRadius: 20,
+    //               padding: 35,
+    //               alignItems: 'center',
+    //               shadowColor: '#000',
+    //               shadowOffset: {
+    //                 width: 0,
+    //                 height: 2,
+    //               },
+    //               shadowOpacity: 0.25,
+    //               shadowRadius: 4,
+    //               elevation: 5,
+    //             },}}>
+    //           <Text style={styles.modalText}>Hello World!</Text>
+    //           <Pressable
+    //             style={[{button: {
+    //               borderRadius: 20,
+    //               padding: 10,
+    //               elevation: 2,
+    //             },}, {  buttonClose: {
+    //               backgroundColor: '#2196F3',
+    //             },}]}
+    //             onPress={() => setModalVisible(!modalVisible)}>
+    //             <Text style={{ textStyle: {
+    //               color: 'white',
+    //               fontWeight: 'bold',
+    //               textAlign: 'center',
+    //             },}}>Hide Modal</Text>
+    //           </Pressable>
+    //         </View>
+    //       </View>
+    //     </Modal>
+    //     <Pressable
+    //       style={[{  button: {
+    //         borderRadius: 20,
+    //         padding: 10,
+    //         elevation: 2,
+    //       },}, { buttonOpen: {
+    //         backgroundColor: '#F194FF',
+    //       },}]}
+    //       onPress={() => setModalVisible(true)}>
+    //       <Text style={{  textStyle: {
+    //         color: 'white',
+    //         fontWeight: 'bold',
+    //         textAlign: 'center',
+    //       },}}>Show Modal</Text>
+    //     </Pressable>
+    //   </View>
+    // );
+    
+    
+
   };
 
   getTabBarVisibility = (route) => {
@@ -962,6 +1088,7 @@ class BottomTabNavigation extends Component {
             initialParams={{ 'appData': appData }}
             component={this.HomeStack}
             options={({ route }) => ({
+             // tabBarBadge:[4],
               tabBarStyle: [{ backgroundColor: '#fff' }, { display: this.getTabBarVisibility(route) }],
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="home-outline" color={color} size={size} />
@@ -1083,6 +1210,7 @@ function renderBadge(){
   useEffect(() => {
     zimAction.queryConversationList();
     //findAllHost()
+
   }, []);
 
   
@@ -1120,7 +1248,14 @@ function pushToScreen(...args) {
   }
 }
 
+function pushToScreenVc(...args){
+  if(navigationRef.isReady()){
+    navigationRef.dispatch(StackActions.push(...args));
+  }
+}
+
 export {
   navigationRef,
-  pushToScreen
+  pushToScreen,
+  pushToScreenVc
 };

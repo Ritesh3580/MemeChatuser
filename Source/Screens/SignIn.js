@@ -27,6 +27,11 @@ import {
   GraphRequest, 
   GraphRequestManager 
 } from 'react-native-fbsdk-next';
+import axios from 'axios';
+import SimpleToast from 'react-native-simple-toast';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const verifyFbGL = "https://api.memechat.co.in/api/socialLogin"
 
 
 const SignIn = ({ navigation }) => {
@@ -39,8 +44,40 @@ const SignIn = ({ navigation }) => {
     GoogleSignin.hasPlayServices().then((hasPlayService) => {
       if (hasPlayService) {
         GoogleSignin.signIn().then((userInfo) => {
-          console.log("GOOLE SIGNIN DATA-->>",userInfo)
-          // api call
+          console.log("GOOLE SIGNIN DATA-->>",userInfo.user)
+   
+          const emailUs = userInfo.user.email;
+
+          const dataEmail ={
+            email :  emailUs
+          }
+
+          axios.post(verifyFbGL,dataEmail )
+          .then(async response =>{
+                 //console.log("reso...../////",response.data);
+                 await AsyncStorage.setItem('token', response.data.token);
+                 
+                 if(response.data.message == "Please enter mobile number to signUp user with email and phone"){
+                 await AsyncStorage.setItem('fbresult',userInfo.user.email);
+
+                 const emails = await AsyncStorage.getItem('fbresult');
+                 console.log("---------------------...............",emails);
+                  SimpleToast.show("Please Enter Mobile Number ",SimpleToast.LONG);
+                  navigation.navigate("SignUpL");
+                  console.log("enetergyureyreyeuy");
+                 }
+                 else if(response.data.message == "Welcome back"){
+                  SimpleToast.show("Welcome Back",SimpleToast.LONG);
+                  navigation.navigate("BottomTabNavigation")
+                 }
+
+
+          }).catch(err => {
+            SimpleToast.show("Something error occured");
+            console.log("Something error", err);
+          })
+
+         
         })
           .catch((e) => {
             console.log("GOOLE SIGNIN-->" + (e));
@@ -73,6 +110,46 @@ const SignIn = ({ navigation }) => {
                 // alert('Error fetching data: ' + error.toString());
               } else {
                 console.log("fb sign in-->",result);
+
+                const emailUs = result.email;
+                console.log("emi-0-0-",emailUs);
+
+                const dataEmail ={
+                  email :  emailUs
+                }
+
+
+
+                axios.post(verifyFbGL,dataEmail )
+                .then(async response =>{
+                       //console.log("reso...../////",response.data);
+                     
+                       await AsyncStorage.setItem('token',response.data.token);
+                          
+                       if(response.data.message == "Please enter mobile number to signUp user with email and phone"){
+                       await AsyncStorage.setItem('fbresult',result.email);
+
+
+
+                       const emails = await AsyncStorage.getItem('fbresult');
+                       console.log("---------------------...............",emails);
+                        SimpleToast.show("Please Enter Mobile Number ",SimpleToast.LONG);
+                        navigation.navigate("SignUpL");
+                        console.log("enetergyureyreyeuy");
+                       }
+                       else if(response.data.message == "Welcome back"){
+                        SimpleToast.show("Welcome Back",SimpleToast.LONG);
+                        navigation.navigate("BottomTabNavigation")
+                       }
+
+
+                }).catch(err => {
+                  SimpleToast.show("Something error occured");
+                  console.log("Something error", err);
+                })
+
+
+               // navigation.navigate("SignUpL" ,{ result: result});
                 // api call
               }
             }

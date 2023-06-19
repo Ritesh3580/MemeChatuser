@@ -208,7 +208,9 @@ const Feedback = props => {
               justifyContent: 'center',
               paddingLeft: wp('4%'),
             }}
-            onPress={() => props.navigation.goBack('City')}>
+            onPress={() =>
+              Linking.openURL('https://web.memechat.co.in/termsOfUse')
+            }>
             <Text style={{ fontSize: hp('2.5%'), color: '#000000' }}>
               Terms of Service
             </Text>
@@ -228,7 +230,9 @@ const Feedback = props => {
               justifyContent: 'center',
               paddingLeft: wp('4%'),
             }}
-            onPress={() => props.navigation.goBack('City')}>
+            onPress={() =>
+              Linking.openURL('https://web.memechat.co.in/privacyPolicy')
+            }>
             <Text style={{ fontSize: hp('2.5%'), color: '#000000' }}>
               Privacy Policy
             </Text>

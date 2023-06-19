@@ -50,7 +50,7 @@ const TopWeekly = props => {
     const token = await AsyncStorage.getItem('token');
     axios.get(baseurl + 'findTopHost', { headers: { Authorization: `Bearer ${token}` } })
       .then(resp => {
-        // console.log(resp.data);
+         console.log("--------host user...........",resp.data.hostuser);
         setTopHost(resp.data.hostuser);
         setLoading(false);
       })
@@ -447,12 +447,14 @@ const TopWeekly = props => {
                   backgroundColor: Colors.primaryColor8,
                   borderTopLeftRadius: hp('1%'),
                   borderTopRightRadius: hp('1%'),
+                //  backgroundColor:'red'
                 }}>
                 <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  scrollEnabled={true}>
+                  showsVerticalScrollIndicator={true}
+                  scrollEnabled={true}
+                  >
                   {
-                    topHost.filter((item, index) => index > 2).map((item, index) => (
+                    topHost.filter((item, index) => index > 0).map((item, index) => (
                       <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => _navToProfile(item)}
@@ -462,7 +464,8 @@ const TopWeekly = props => {
                           height: hp('12%'),
                           flexDirection: 'row',
                           justifyContent: 'space-between',
-                          paddingRight: 5
+                          paddingRight: 5,
+                         
                         }}>
                         <View
                           style={{
@@ -470,16 +473,19 @@ const TopWeekly = props => {
                             height: hp('12%'),
                             justifyContent: 'center',
                             alignItems: 'center',
+                            
+                           // backgroundColor:'green'
                           }}>
                           {
                             item.userImage ?
 
                               <Image
-                                source={{ uri: item.userImage }}
+                                source={ { uri: item.userImage } }
                                 style={{
                                   width: hp('8%'),
                                   height: hp('8%'),
                                   borderRadius: hp('7%'),
+                               
                                 }}
                               />
                               :
@@ -518,6 +524,7 @@ const TopWeekly = props => {
                             height: hp('12%'),
                             marginLeft: hp('0.5%'),
                             justifyContent: 'center',
+                            
                           }}>
                           <View
                             style={{
@@ -627,7 +634,17 @@ const TopWeekly = props => {
               </View>
             </ImageBackground>
         }
+
+      {/* <View style={{backgroundColor:'red'}}>
+        <Text> {topHost[1].FirstName}</Text>
+       </View>
+
+       <View style={{backgroundColor:'red'}}>
+        <Text> {topHost[1].FirstName}</Text>
+       </View> */}
       </View>
+
+     
     </SafeAreaView>
   );
 };
