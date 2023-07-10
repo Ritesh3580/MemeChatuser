@@ -28,12 +28,12 @@ function FollowsFollowers(props) {
                     initialParams={props.route.params}
                 />
                 <Tab.Screen
-                    name="Followers"
+                    name="Follower"
                     component={FollwersScreen}
                     initialParams={props.route.params}
                 />
                 <Tab.Screen
-                    name="Followings"
+                    name="Following"
                     component={FollowingScreen}
                     initialParams={props.route.params}
                 />

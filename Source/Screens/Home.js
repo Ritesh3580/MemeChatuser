@@ -10,7 +10,7 @@ import {
   ImageBackground,
   ScrollView,
 } from 'react-native';
-import React, { Component, useEffect } from 'react';
+import React, {Component, useEffect} from 'react';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
@@ -24,16 +24,16 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Colors from '../Assetst/Constants/Colors';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { SliderBox } from 'react-native-image-slider-box';
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import {SliderBox} from 'react-native-image-slider-box';
 // import Discover from '../Screens/Discover';
 // import NearBy from '../Screens/Nearby';
-import { baseurl, localBaseurl } from '../config/baseurl';
-import { storage } from '../store/MMKV';
-import { zego_config } from '../config/ZegoConfig';
-import { useState } from 'react';
-import { useIsFocused } from '@react-navigation/native';
-import { useZIM } from '../hooks/zim';
+import {baseurl, localBaseurl} from '../config/baseurl';
+import {storage} from '../store/MMKV';
+import {zego_config} from '../config/ZegoConfig';
+import {useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import {useZIM} from '../hooks/zim';
 import Modal from 'react-native-modal';
 import SimpleToast from 'react-native-simple-toast';
 import messaging from '@react-native-firebase/messaging';
@@ -49,7 +49,6 @@ const ScrollBanner = [
 ];
 
 export default function Home(props) {
-
   const [data, setData] = useState([]);
   const [banner, setBanner] = useState([]);
   const [blockedHostId, setBlockedHostId] = useState([]);
@@ -59,7 +58,7 @@ export default function Home(props) {
   const appData = props.route.params.appData;
   const isFocused = useIsFocused();
 
-  const [{ callID }, zimAction] = useZIM();
+  const [{callID}, zimAction] = useZIM();
 
   // useEffect(() => {
   //   const unsubscribe = messaging().onMessage(async remoteMessage => {
@@ -72,17 +71,20 @@ export default function Home(props) {
   // }, []);
 
   useEffect(() => {
-
-    
     zimAction.initEvent();
-    zimAction.login({ userID: appData?.user?.userId, userName: appData?.user?.fullName }).then(() => {
-      console.log("ZIM LOGIN SUCCESS");
-      zimAction.updateUserInfo(appData?.user?.fullName, appData?.user?.imageUrl);
-    })
-    console.log("props==?", props);
+    zimAction
+      .login({userID: appData?.user?.userId, userName: appData?.user?.fullName})
+      .then(() => {
+        console.log('ZIM LOGIN SUCCESS');
+        zimAction.updateUserInfo(
+          appData?.user?.fullName,
+          appData?.user?.imageUrl,
+        );
+      });
+    console.log('props==?', props);
     if (props.route.params.roomID) {
       handleIncomingCall(props.route.params.roomID);
-    };
+    }
   }, []);
 
   useEffect(() => {
@@ -98,7 +100,7 @@ export default function Home(props) {
   function handleIncomingCall(roomID) {
     jumpToCallPage(roomID);
     console.log('Handle incoming call with room id: ', roomID);
-  };
+  }
 
   async function userProfile() {
     const token = await AsyncStorage.getItem('token');
@@ -108,13 +110,14 @@ export default function Home(props) {
     let user_URL = localBaseurl + 'showProfile';
     let host_user_URL = localBaseurl + 'findHostuser';
     let banner_URL = localBaseurl + 'userfindBanner';
-    axios.all([
-      axios.get(user_URL, { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(host_user_URL, { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(banner_URL, { headers: { Authorization: `Bearer ${token}` } }),
-      randomPromise
-    ])
-      .then((responses) => {
+    axios
+      .all([
+        axios.get(user_URL, {headers: {Authorization: `Bearer ${token}`}}),
+        axios.get(host_user_URL, {headers: {Authorization: `Bearer ${token}`}}),
+        axios.get(banner_URL, {headers: {Authorization: `Bearer ${token}`}}),
+        randomPromise,
+      ])
+      .then(responses => {
         // console.log("ok1");
         let HostArr = [];
         setUserData(responses[0].data);
@@ -127,59 +130,69 @@ export default function Home(props) {
         responses[0].data.block?.map(item => HostArr.push(item._id));
         if (HostArr.length > 0) {
           HostArr.map(item => {
-            const filter = responses[1].data.filter(_item => item !== _item._id);
+            const filter = responses[1].data.filter(
+              _item => item !== _item._id,
+            );
             setData(filter);
-          })
-        }
-        else {
+          });
+        } else {
           setData(responses[1].data);
         }
       })
       .catch(err => {
         console.log('axios all promise error---->>>>', err);
-        SimpleToast.show("Something error occured!", SimpleToast.LONG);
+        SimpleToast.show('Something error occured!', SimpleToast.LONG);
       });
-  };
+  }
 
   async function startCall(targetUser) {
     const token = await AsyncStorage.getItem('token');
     if (!targetUser) {
       console.warn('Invalid user id');
-      alert("Invalid target user");
+      alert('Invalid target user');
       return;
-    };
+    }
     let randomPromise = Promise.resolve(200);
 
-    axios.all([
-      axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(baseurl + 'getOneUserProfile/' + targetUser.userId, { headers: { Authorization: `Bearer ${token}` } }),
-      randomPromise
-    ]).then(responses => {
-      if (responses[0]?.data?.total_coins < responses[1]?.data?.getuser?.hostuser_fees) {
-        console.log("insufficient coin");
-        toggleMyMobile();
-        return;
-      }
-      //console.log(baseurl + 'showProfile')
-      // setIsCalling(true);
-      // alert('calling');
-       sendCallInvite({
-        roomID: appData.user.userId,
-        user: appData.user,
-        targetUserID: targetUser.userId,
-      });
-      jumpToCallPage(appData?.user?.userId);
-    })
-      .catch(err => {
-        SimpleToast.show("Server down!");
-        console.log("get user during video call-->", err);
+    axios
+      .all([
+        axios.get(baseurl + 'showProfile', {
+          headers: {Authorization: `Bearer ${token}`},
+        }),
+        axios.get(baseurl + 'getOneUserProfile/' + targetUser.userId, {
+          headers: {Authorization: `Bearer ${token}`},
+        }),
+        randomPromise,
+      ])
+      .then(responses => {
+        if (
+          responses[0]?.data?.total_coins <
+          responses[1]?.data?.getuser?.hostuser_fees
+        ) {
+          console.log('insufficient coin');
+          toggleMyMobile();
+          return;
+        }
+        //console.log(baseurl + 'showProfile')
+        // setIsCalling(true);
+        // alert('calling');
+        sendCallInvite({
+          roomID: appData.user.userId,
+          user: appData.user,
+          targetUserID: targetUser.userId,
+        });
+        jumpToCallPage(appData?.user?.userId);
       })
-  };
+      .catch(err => {
+        SimpleToast.show('Server down!');
+        console.log('get user during video call-->', err);
+      });
+  }
 
   async function sendCallInvite(data) {
     const requestOptions = {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         targetUserID: data.targetUserID,
         callerUserID: data.user?.userId,
@@ -187,7 +200,7 @@ export default function Home(props) {
         callerIconUrl: 'user_image',
         roomID: data.roomID,
         callType: 'Video', // TODO For test only
-        role: "1"
+        role: '1',
       }),
     };
     // console.log(requestOptions.body);
@@ -196,15 +209,14 @@ export default function Home(props) {
       requestOptions,
     );
     console.log('Send call invite reps: ', reps);
-  };
+  }
 
   async function jumpToCallPage(roomID) {
     props.navigation.navigate('CallPage', {
       appData: appData,
-      roomID: roomID
+      roomID: roomID,
     });
-  };
-
+  }
 
   return (
     <SafeAreaView>
@@ -212,52 +224,89 @@ export default function Home(props) {
       <View style={styles.container}>
         <View
           style={{
-            width: wp('96%'),
-            height: hp('4.5%'),
+            width: wp('100%'),
+            height: hp('7%'),
             alignSelf: 'center',
             flexDirection: 'row',
             justifyContent: 'space-between',
-            //backgroundColor:'green'
+            backgroundColor: '#b15eff',
+            alignItems: 'center',
+           
           }}>
           <TouchableOpacity
             style={{
-              width: wp('10%'),
+              width: wp('25%'),
               height: hp('4%'),
               alignItems: 'center',
               justifyContent: 'center',
+              flexDirection: 'row',
+              marginLeft: 10,
               // backgroundColor:'pink'
             }}
             onPress={() => props.navigation.navigate('TopWeekly')}>
+           
             <FontAwesome5Icon
               name="crown"
               size={hp('2.5%')}
-              style={{ color: Colors.yellow }}
+              style={{color: Colors.yellow}}
             />
+
+            <Text
+              style={{
+                color: 'white',
+                fontSize: wp('4%'),
+                marginLeft: 10,
+                fontWeight: 'bold',
+              }}>
+              Trending
+            </Text>
           </TouchableOpacity>
           <View
             style={{
-              width: wp('20%'),
+              width: wp('50%'),
               height: hp('4%'),
               flexDirection: 'row',
               alignItems: 'center',
-              paddingHorizontal: wp('4%'),
-              justifyContent: 'space-between',
+              //  paddingHorizontal: wp('4%'),
+              //  justifyContent: 'space-between',
               //backgroundColor:'pink'
             }}>
+            <TouchableOpacity
+              onPress={() =>
+                props.navigation.navigate('SearchPerson', {
+                  host: data,
+                  appData: appData,
+                  roomID: props.route?.params?.roomID,
+                })
+              }
+              style={{
+                backgroundColor: 'white',
+                width: wp('40%'),
+                height: hp('2.8%'),
+                borderRadius: 20,
+               // justifyContent: 'center',
+                justifyContent:'space-between',
+                flexDirection:'row',
+                alignItems:'center',
+                // padding:1
+              }}>
+                 <Text style={{color:'black', marginLeft:7, fontSize:12}}>search....</Text>
+              <FontAwesome5Icon
+                name="search"
+                size={hp('1.9%')}
+                style={{
+                  color: Colors.black,
+                //  alignSelf: 'flex-end',
+                  marginRight: 5,
+                }}
+              />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => props.navigation.navigate('Messages1')}>
               <FontAwesome5Icon
                 name="bell"
                 size={hp('2.5%')}
-                style={{ color: Colors.black }}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => props.navigation.navigate('SearchPerson', { host: data, appData: appData, roomID: props.route?.params?.roomID })}>
-              <FontAwesome5Icon
-                name="search"
-                size={hp('2.7%')}
-                style={{ color: Colors.black }}
+                style={{color: Colors.white, marginLeft: wp('2%')}}
               />
             </TouchableOpacity>
           </View>
@@ -274,37 +323,43 @@ export default function Home(props) {
             // borderWidth: 1,
             // borderColor: Colors.gray
           }}>
-          {
-            banner?.length === 0 ?
-              <>
-                <Text style={{ color: Colors.gray, textAlign: 'center', fontWeight: '600' }}>No image available!</Text>
-              </>
-              :
-              <SliderBox
-                style={styles.imgSlider}
-                images={banner}
-                autoplay={true}
-                autoPlayWithInterval={500}
-                circleLoop={true}
-                //inactiveDotColor={false}
-                inactiveDotColor="#90A4AE"
-                dotStyle={{
-                  width: 10,
-                  height: 9,
-                  borderRadius: 10,
-                }}
-                resizeMode='stretch'
-              />
-          }
+          {banner?.length === 0 ? (
+            <>
+              <Text
+                style={{
+                  color: Colors.gray,
+                  textAlign: 'center',
+                  fontWeight: '600',
+                }}>
+                No image available!
+              </Text>
+            </>
+          ) : (
+            <SliderBox
+              style={styles.imgSlider}
+              images={banner}
+              autoplay={true}
+              autoPlayWithInterval={500}
+              circleLoop={true}
+              //inactiveDotColor={false}
+              inactiveDotColor="#90A4AE"
+              dotStyle={{
+                width: 10,
+                height: 9,
+                borderRadius: 10,
+              }}
+              resizeMode="stretch"
+            />
+          )}
         </View>
-        
+
         <FlatList
           showsVerticalScrollIndicator={false}
           keyExtractor={(item, index) => index}
           data={data}
           numColumns={2}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          renderItem={({ item, index }) => {
+          contentContainerStyle={{paddingBottom: 100}}
+          renderItem={({item, index}) => {
             // if (blockedHostId.includes(item._id)) {
             //   return null;
             // }
@@ -341,45 +396,81 @@ export default function Home(props) {
                   }}>
                   {item.userImage ? (
                     <ImageBackground
-                      source={{ uri: item.userImage }}
+                      source={{uri: item.userImage}}
                       resizeMode="cover"
-                      style={{ width: wp('49%'), height: hp('29.8%') }}
+                      style={{width: wp('49%'), height: hp('29.8%')}}
                       imageStyle={{
                         borderRadius: hp('2%'),
                         borderWidth: 1,
                         borderColor: '#b15eff',
                       }}>
-                      {
-                        item.acctiveStatus ?
-                          <View
+                      {item.acctiveStatus == 'online' ? (
+                        <View
+                          style={{
+                            width: wp('42%'),
+                            height: hp('5%'),
+                            justifyContent: 'center',
+                            padding: wp('2%'),
+                            // backgroundColor:'red'
+                          }}>
+                          <TouchableOpacity
                             style={{
-                              width: wp('42%'),
-                              height: hp('5%'),
+                              width: wp('10%'),
+                              height: hp('2%'),
+                              backgroundColor: Colors.green2,
+                              alignItems: 'center',
                               justifyContent: 'center',
-                              padding: wp('2%'),
+                              borderRadius: hp('1.5%'),
+                              position: 'absolute',
                             }}>
-                            <TouchableOpacity
+                            {/* {
+                                item.acctiveStatus == "offline" &&
+                                console.log("active status ...........",item.acctiveStatus)
+                              } */}
+                            <Text
                               style={{
-                                width: wp('10%'),
-                                height: hp('2%'),
-                                backgroundColor: Colors.green2,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                borderRadius: hp('1.5%'),
-                                position: 'absolute'
+                                fontSize: hp('1%'),
+                                color: Colors.white,
+                                textTransform: 'capitalize',
                               }}>
-                              <Text
-                                style={{
-                                  fontSize: hp('1%'),
-                                  color: Colors.white,
-                                  textTransform: 'capitalize'
-                                }}>
-                                {item.acctiveStatus}
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                          : null
-                      }
+                              {item.acctiveStatus}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <View
+                          style={{
+                            width: wp('42%'),
+                            height: hp('5%'),
+                            justifyContent: 'center',
+                            padding: wp('2%'),
+                            // backgroundColor:'red'
+                          }}>
+                          <TouchableOpacity
+                            style={{
+                              width: wp('10%'),
+                              height: hp('2%'),
+                              // backgroundColor: Colors.green2,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: hp('1.5%'),
+                              position: 'absolute',
+                            }}>
+                            {/* {
+                              item.acctiveStatus == "offline" &&
+                              console.log("active status ...........",item.acctiveStatus)
+                            } */}
+                            <Text
+                              style={{
+                                fontSize: hp('1%'),
+                                color: Colors.white,
+                                textTransform: 'capitalize',
+                              }}>
+                              {/* {item.acctiveStatus} */}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
                       <View
                         style={{
                           width: wp('45%'),
@@ -389,7 +480,6 @@ export default function Home(props) {
                           justifyContent: 'space-between',
                           // backgroundColor:'purple',
                           alignSelf: 'center',
-
                         }}>
                         <View
                           style={{
@@ -400,7 +490,7 @@ export default function Home(props) {
                             //backgroundColor:'skyblue',
                             paddingLeft: 10,
                           }}>
-                          <View style={{ flexDirection: 'row' }}>
+                          <View style={{flexDirection: 'row'}}>
                             <Text
                               style={{
                                 fontSize: hp('2%'),
@@ -418,11 +508,11 @@ export default function Home(props) {
                                 30
                               </Text> */}
                           </View>
-                          <TouchableOpacity style={{ flexDirection: 'row' }}>
+                          <TouchableOpacity style={{flexDirection: 'row'}}>
                             <Ionicons
                               name="md-location-sharp"
                               size={hp('2%')}
-                              style={{ color: '#ffff' }}
+                              style={{color: '#ffff'}}
                             />
                             <Text
                               style={{
@@ -446,7 +536,10 @@ export default function Home(props) {
                           <TouchableOpacity
                             onPress={async () => {
                               // await setTargetUser(item);
-                              await AsyncStorage.setItem('targetUser', JSON.stringify(item));
+                              await AsyncStorage.setItem(
+                                'targetUser',
+                                JSON.stringify(item),
+                              );
                               await startCall(item);
                             }}
                             style={{
@@ -461,7 +554,7 @@ export default function Home(props) {
                               name="videocam-outline"
                               solid
                               size={hp('3%')}
-                              style={{ color: '#b15eff' }}
+                              style={{color: '#b15eff'}}
                             />
                           </TouchableOpacity>
                         </View>
@@ -469,9 +562,9 @@ export default function Home(props) {
                     </ImageBackground>
                   ) : (
                     <ImageBackground
-                      source={{ uri: item.userImage }}
+                      source={{uri: item.userImage}}
                       resizeMode="cover"
-                      style={{ width: wp('49%'), height: hp('24.8%') }}
+                      style={{width: wp('49%'), height: hp('24.8%')}}
                       imageStyle={{
                         borderRadius: hp('2%'),
                         borderWidth: 1,
@@ -521,7 +614,7 @@ export default function Home(props) {
                             //backgroundColor:'skyblue',
                             paddingLeft: 10,
                           }}>
-                          <View style={{ flexDirection: 'row' }}>
+                          <View style={{flexDirection: 'row'}}>
                             <Text
                               style={{
                                 fontSize: hp('2%'),
@@ -539,11 +632,11 @@ export default function Home(props) {
                                 30
                               </Text> */}
                           </View>
-                          <TouchableOpacity style={{ flexDirection: 'row' }}>
+                          <TouchableOpacity style={{flexDirection: 'row'}}>
                             <Ionicons
                               name="md-location-sharp"
                               size={hp('2%')}
-                              style={{ color: '#ffff' }}
+                              style={{color: '#ffff'}}
                             />
                             <Text
                               style={{
@@ -566,7 +659,10 @@ export default function Home(props) {
                           }}>
                           <TouchableOpacity
                             onPress={async () => {
-                              await AsyncStorage.setItem('targetUser', JSON.stringify(item));
+                              await AsyncStorage.setItem(
+                                'targetUser',
+                                JSON.stringify(item),
+                              );
                               await startCall(item);
                             }}
                             style={{
@@ -581,7 +677,7 @@ export default function Home(props) {
                               name="videocam-outline"
                               solid
                               size={hp('3%')}
-                              style={{ color: '#b15eff' }}
+                              style={{color: '#b15eff'}}
                             />
                           </TouchableOpacity>
                         </View>
@@ -590,10 +686,10 @@ export default function Home(props) {
                   )}
                 </TouchableOpacity>
               </View>
-            )
+            );
           }}
         />
-        <View style={{ bottom: 0 }}>
+        <View style={{bottom: 0}}>
           <Modal
             isVisible={myModal}
             animationIn="slideInLeft"
@@ -658,7 +754,7 @@ export default function Home(props) {
                   backgroundColor: '#fff',
                 }}>
                 <Image
-                  source={{ uri: userData?.imageUrl }}
+                  source={{uri: userData?.imageUrl}}
                   style={{
                     width: '100%',
                     height: '100%',
@@ -686,7 +782,7 @@ export default function Home(props) {
                 }}>
                 <Image
                   source={require('../Assetst/Images/coins.png')}
-                  style={{ width: hp('2.8%'), height: hp('2.8%') }}
+                  style={{width: hp('2.8%'), height: hp('2.8%')}}
                 />
                 <Text
                   style={{
@@ -707,8 +803,7 @@ export default function Home(props) {
                   marginTop: hp('1%'),
                   textAlign: 'center',
                   // marginHorizontal:10
-                }}
-              >
+                }}>
                 For Safe private calls,you will be charged
               </Text>
               <Text
@@ -718,8 +813,7 @@ export default function Home(props) {
                   fontSize: hp('1.5%'),
                   textAlign: 'center',
                   // marginHorizontal:10
-                }}
-              >
+                }}>
                 {userData?.hostuser_fees} coins per minute
               </Text>
               <TouchableOpacity
@@ -737,11 +831,14 @@ export default function Home(props) {
 
                   borderWidth: hp('0.2%'),
                 }}>
-                <Text style={{
-                  fontSize: hp('2%'),
-                  fontWeight: 'bold',
-                  color: '#000'
-                }}>Get coins</Text>
+                <Text
+                  style={{
+                    fontSize: hp('2%'),
+                    fontWeight: 'bold',
+                    color: '#000',
+                  }}>
+                  Get coins
+                </Text>
               </TouchableOpacity>
             </View>
           </Modal>
@@ -794,6 +891,6 @@ const styles = StyleSheet.create({
     width: wp('100%'),
     height: wp('30%'),
     //alignSelf: 'center',
-   // justifyContent: 'center',
+    // justifyContent: 'center',
   },
 });

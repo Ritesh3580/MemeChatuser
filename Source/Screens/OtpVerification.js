@@ -369,7 +369,7 @@ const [counter, setCounter] = React.useState(30);
                // navigateTo={PressotpVerification}
               /> */}
 
-           <TouchableOpacity style={{height: wp('15%'), backgroundColor: Colors.lightPurples, borderRadius:20 ,justifyContent:'center', alignItems:'center', marginHorizontal:20, marginTop:20}} onPress={onPressVerifyOtp}>
+           <TouchableOpacity style={{height: wp('15%'), backgroundColor: Colors.lightPurples,  borderRadius: hp('4%'),justifyContent:'center', alignItems:'center', marginHorizontal:20, marginTop:20}} onPress={onPressVerifyOtp}>
              <Text style={{color:'white' , fontSize:18}}>
               Login
              </Text>

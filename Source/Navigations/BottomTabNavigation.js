@@ -1230,11 +1230,11 @@ function renderBadge(){
 
   console.log("sum_____________________sum",sum)
 
-  if(sum >= 0){
+  if(sum > 0){
     return sum;
   }
   else{
-    return 0;
+    return ;
   }
 
  

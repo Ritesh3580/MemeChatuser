@@ -66,11 +66,22 @@ const LeftBox = ({ item }) => (
         <View style={styles.min}></View>)
     }
 
-    <Image
-      style={styles.avatar}
-      source={{
-        uri: "item.conversationAvatarUrl",
-      }} />
+    {
+     // console.log("item........sifhsuhfuashfsh",item)
+      item?.conversationAvatarUrl ?(
+        <Image
+        style={styles.avatar}
+        source={{
+          uri: item.conversationAvatarUrl
+        }} />
+      ):(
+        <Image
+        style={styles.avatar}
+        source={require('../Assetst/Images/user.png')} />
+      )
+    }
+
+  
     {/*<Avatar*/}
     {/*    size={42}*/}
     {/*    name={`${item.conversationName + item.conversationID}`}*/}
@@ -154,6 +165,8 @@ const Messages = props => {
   }
 
   const renderItem = ({ item, index }) => (
+    console.log("item  data",item) 
+    ||
     <ListItem
       onPress={() => intoChat(item)}
       title={`${item.conversationName || item.conversationID}`}
@@ -199,7 +212,7 @@ const Messages = props => {
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
-              <Ionicons name="md-chevron-back" size={hp('3.2%')} color="#fff" />
+              {/* <Ionicons name="md-chevron-back" size={hp('3.2%')} color="#fff" /> */}
               {/* <Text style={{ fontFamily: "Roboto-Regular", fontSize: hp('2%'), color: Colors.primaryColor8 }}>Back</Text> */}
             </TouchableOpacity>
           </View>
@@ -411,7 +424,9 @@ const styles = StyleSheet.create({
     zIndex: 999
   },
   avatar: {
-    height: 60,
-    width: 60
+    height: 50,
+    width: 50,
+    borderRadius:wp('5%'),
+     
   }
 });

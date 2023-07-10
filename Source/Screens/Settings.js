@@ -685,10 +685,10 @@ const Setting = ({navigation}) => {
                   }}
                   style={[
                     styles.eng,
-                    {backgroundColor: color ? '#b15eff' : '#fff'},
+                    {backgroundColor: color ? '#fff' : '#fff'},
                   ]}>
                   <Text
-                    style={[styles.enter, {color: color ? '#fff' : '#b15eff'}]}>
+                    style={[styles.enter, {color: color ? '#b15eff' : '#b15eff'}]}>
                     Cancel
                   </Text>
                 </TouchableOpacity>

@@ -8,7 +8,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
@@ -18,12 +18,13 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import Modal from 'react-native-modal';
 // import {Navigation} from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
-import { baseurl, localBaseurl } from '../config/baseurl';
+import {baseurl, localBaseurl} from '../config/baseurl';
 // import { storage } from '../store/MMKV';
-import { zego_config } from '../config/ZegoConfig';
+import {zego_config} from '../config/ZegoConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import SimpleToast from 'react-native-simple-toast';
+import Colors from '../Assetst/Constants/Colors';
 
 const ProfileDetails = props => {
   const [myModal, setMyModal] = useState(false);
@@ -51,31 +52,40 @@ const ProfileDetails = props => {
     if (targetUser?.userId == '') {
       console.warn('Invalid user id');
       return;
-    };
+    }
     let randomPromise = Promise.resolve(200);
 
-    axios.all([
-      axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(baseurl + 'getOneUserProfile/'+targetUser.userId, { headers: { Authorization: `Bearer ${token}` } }),
-      randomPromise
-    ]).then(responses => {
-      if (responses[0]?.data?.total_coins < responses[1]?.data?.getuser?.hostuser_fees) {
-        console.log("insufficient coin");
-        toggleMyMobile();
-        return;
-      }
-      jumpToCallPage(userData.appData.user.userId);
-      sendCallInvite({
-        roomID: responses[0]?.data?.userId,
-        user: responses[0].data,
-        targetUserID: targetUser.userId,
-      });
-    })
-      .catch(err => {
-        SimpleToast.show("Server down!");
-        console.log("get user during video call-->", err.response.data);
+    axios
+      .all([
+        axios.get(baseurl + 'showProfile', {
+          headers: {Authorization: `Bearer ${token}`},
+        }),
+        axios.get(baseurl + 'getOneUserProfile/' + targetUser.userId, {
+          headers: {Authorization: `Bearer ${token}`},
+        }),
+        randomPromise,
+      ])
+      .then(responses => {
+        if (
+          responses[0]?.data?.total_coins <
+          responses[1]?.data?.getuser?.hostuser_fees
+        ) {
+          console.log('insufficient coin');
+          toggleMyMobile();
+          return;
+        }
+        jumpToCallPage(userData.appData.user.userId);
+        sendCallInvite({
+          roomID: responses[0]?.data?.userId,
+          user: responses[0].data,
+          targetUserID: targetUser.userId,
+        });
       })
-  };
+      .catch(err => {
+        SimpleToast.show('Server down!');
+        console.log('get user during video call-->', err.response.data);
+      });
+  }
 
   // const startCall = (targetUser) => {
   //   if (targetUser?.userId == '') {
@@ -89,38 +99,40 @@ const ProfileDetails = props => {
   //   }
   //   // TODO the caller use he/her own user id to join room, for test only
   //   jumpToCallPage(userData.appData.user.userId);
-  //   sendCallInvite({ 
-  //     roomID: userData.appData.user.userId, 
-  //     user: userData.appData.user, 
-  //     targetUserID: targetUser.userId 
+  //   sendCallInvite({
+  //     roomID: userData.appData.user.userId,
+  //     user: userData.appData.user,
+  //     targetUserID: targetUser.userId
   //   });
   // };
 
-
-  const sendCallInvite = (data) => {
+  const sendCallInvite = data => {
     const requestOptions = {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         targetUserID: data.targetUserID,
         callerUserID: data.user.userId,
         callerUserName: data.user.fullName,
-        callerIconUrl: "user_image",
+        callerIconUrl: 'user_image',
         roomID: data.roomID,
         callType: 'Video', // TODO For test only
-        role: "1"
-      })
+        role: '1',
+      }),
     };
     // console.log(requestOptions.body);
     const reps = fetch(`${zego_config.serverUrl}/call_invite`, requestOptions);
     console.log('Send call invite reps: ', reps);
-  }
-  const jumpToCallPage = (roomID) => {
+  };
+  const jumpToCallPage = roomID => {
     // const appData_str = await AsyncStorage.getItem('appData');
     // const app_data = JSON.parse(appData_str);
     // console.log(newAppData);
     // console.log("JUMP TO CALL PAGE appData------------->>>>>>>>>>",userData.appData);
-    props.navigation.navigate('CallPage', { appData: userData.appData, roomID: roomID });
+    props.navigation.navigate('CallPage', {
+      appData: userData.appData,
+      roomID: roomID,
+    });
   };
 
   const _openChatRoom = async () => {
@@ -128,30 +140,81 @@ const ProfileDetails = props => {
       userData: userData,
       type: 0,
       id: userData.user.userId,
-      name: userData.user.fullName
+      name: userData.user.fullName,
     };
     props.navigation.navigate('ChatRoom', navData);
   };
 
   const _block = async () => {
-
     const token = await AsyncStorage.getItem('token');
 
-    axios.put(baseurl + "userblockbyhostUser",
-      { "block": userData.user._id },
-      { headers: { Authorization: `Bearer ${token}` } }
-    ).then(resp => {
-      toggleMyMobile1(false);
-      toggleMyMobile2();
-      SimpleToast.show('blocked');
-      console.log("block-->>",resp.data);
+    axios
+      .put(
+        baseurl + 'userblockbyhostUser',
+        {block: userData.user._id},
+        {headers: {Authorization: `Bearer ${token}`}},
+      )
+      .then(resp => {
+        toggleMyMobile1(false);
+        toggleMyMobile2();
+        SimpleToast.show('blocked');
+        console.log('block-->>', resp.data);
+      })
+      .catch(err => {
+        toggleMyMobile1(false);
+        toggleMyMobile2();
+        SimpleToast.show('something went wrong!');
+        console.log('block-->>', err?.response?.data);
+      });
+  };
+
+  const submit_Follow = async host => {
+    SimpleToast.show('Please wait...');
+    console.log('following....');
+    const token = await AsyncStorage.getItem('token');
+    let body = {
+      followers: host?._id,
+    };
+     console.log(token);
+    // console.log(userData);
+    axios({
+      url: localBaseurl + 'userFollowapi',
+      method: 'PUT',
+      headers: {Authorization: `Bearer ${token}`},
+      data: body,
     })
-    .catch(err => {
-      toggleMyMobile1(false);
-      toggleMyMobile2();
-      SimpleToast.show('something went wrong!');
-      console.log("block-->>",err?.response?.data);
+      .then(resp => {
+        console.log('submit follow--->>>', resp.data);
+        SimpleToast.show('Success');
+        // userProfile();
+      })
+      .catch(err => {
+        console.log('submit follow error--->>>', err.response.data);
+        SimpleToast.show('Something error occured!');
+      });
+  };
+
+  const submit_unFollow = async host => {
+    SimpleToast.show('Please wait...');
+    const token = await AsyncStorage.getItem('token');
+    let body = {
+      followers: host?._id,
+    };
+    axios({
+      url: localBaseurl + 'userunFollowapi',
+      method: 'PUT',
+      headers: {Authorization: `Bearer ${token}`},
+      data: body
     })
+      .then(resp => {
+        console.log('submit unfollow error--->>>//', resp.data);
+        SimpleToast.show('Success');
+        // userProfile();
+      })
+      .catch(err => {
+        console.log('submit unfollow--->>>++', err.response);
+        SimpleToast.show('Something error occured!-');
+      });
   };
 
   return (
@@ -160,7 +223,7 @@ const ProfileDetails = props => {
       <View style={styles.container}>
         <Image
           style={styles.background}
-          source={{ uri: userData.user.userImage }}
+          source={{uri: userData.user.userImage}}
         />
         <View style={styles.head}>
           <View
@@ -231,6 +294,7 @@ const ProfileDetails = props => {
               }}>
               {userData.user.FirstName}, {userData.user.age}
             </Text>
+
             <Text
               style={{
                 fontSize: hp('1.8%'),
@@ -248,7 +312,7 @@ const ProfileDetails = props => {
               justifyContent: 'space-between',
               flexDirection: 'row',
             }}>
-            <TouchableOpacity style={{ justifyContent: 'center' }} disabled>
+            <TouchableOpacity style={{justifyContent: 'center'}} disabled>
               {/* <View
                 style={{
                   width: wp('19%'),
@@ -271,7 +335,29 @@ const ProfileDetails = props => {
                 </Text>
               </View> */}
             </TouchableOpacity>
-            <TouchableOpacity style={{ justifyContent: 'center' }}>
+            {/* {
+            userData?.user?.followings ? 
+              <TouchableOpacity
+                 onPress={() => submit_Follow(userData?.user)}
+                style={{
+                  height: hp('3%'),
+                  width: wp('18%'),
+                  backgroundColor: Colors.primary,
+                  marginTop: 10,
+                  // paddingVertical: 3,
+                  // paddingHorizontal: 15,
+                  borderRadius: 20,
+                  // position: 'absolute',
+                  right: wp('2%'),
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Text style={{color: Colors.white, fontSize: 12}}>follow</Text>
+              </TouchableOpacity>  : null
+         
+            } */}
+
+            <TouchableOpacity style={{justifyContent: 'center'}}>
               <View
                 style={{
                   height: hp('3%'),
@@ -283,11 +369,12 @@ const ProfileDetails = props => {
                   flexDirection: 'row',
                   marginRight: wp('4%'),
                   backgroundColor: '#9B45D2',
-                  paddingHorizontal: 5
+                  paddingHorizontal: 5,
+                  marginBottom: hp('2%'),
                 }}>
                 <Image
                   source={require('../Assetst/Images/coins.png')}
-                  style={{ width: hp('2%'), height: hp('2%') }}
+                  style={{width: hp('2%'), height: hp('2%')}}
                 />
                 <Text
                   style={{
@@ -302,6 +389,7 @@ const ProfileDetails = props => {
             </TouchableOpacity>
           </View>
         </View>
+
         <View
           style={{
             width: wp('65%'),
@@ -314,7 +402,10 @@ const ProfileDetails = props => {
           }}>
           <TouchableOpacity
             onPress={async () => {
-              await AsyncStorage.setItem('targetUser', JSON.stringify(userData.user));
+              await AsyncStorage.setItem(
+                'targetUser',
+                JSON.stringify(userData.user),
+              );
               startCall(userData.user);
             }}
             style={{
@@ -325,16 +416,16 @@ const ProfileDetails = props => {
             }}>
             <Image
               source={require('../Assetst/Images/Group42.png')}
-              style={{ width: hp('7%'), height: hp('7%') }}
+              style={{width: hp('7%'), height: hp('7%')}}
             />
-            <Text style={{ fontSize: hp('1.5%'), color: '#fff' }}>
+            <Text style={{fontSize: hp('1.5%'), color: '#fff'}}>
               Video Call
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => {
-              // toggleMyMobile(); 
+              // toggleMyMobile();
               _openChatRoom();
             }}
             style={{
@@ -345,13 +436,13 @@ const ProfileDetails = props => {
             }}>
             <Image
               source={require('../Assetst/Images/Group51.png')}
-              style={{ width: hp('7.2%'), height: hp('7.2%') }}
+              style={{width: hp('7.2%'), height: hp('7.2%')}}
             />
-            <Text style={{ fontSize: hp('1.5%'), color: '#fff' }}>Chat</Text>
+            <Text style={{fontSize: hp('1.5%'), color: '#fff'}}>Chat</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={{ bottom: 0 }}>
+        <View style={{bottom: 0}}>
           <Modal
             isVisible={myModal}
             animationIn="slideInLeft"
@@ -411,9 +502,9 @@ const ProfileDetails = props => {
                   marginTop: '0.5%',
                   // justifyContent: 'center',
                   // alignItems: 'center',
-                  overflow:'hidden',
-                  elevation:9,
-                  backgroundColor:'#fff',
+                  overflow: 'hidden',
+                  elevation: 9,
+                  backgroundColor: '#fff',
                 }}>
                 <Image
                   source={{uri: userData?.appData?.user?.imageUrl}}
@@ -444,7 +535,7 @@ const ProfileDetails = props => {
                 }}>
                 <Image
                   source={require('../Assetst/Images/coins.png')}
-                  style={{ width: hp('2.8%'), height: hp('2.8%') }}
+                  style={{width: hp('2.8%'), height: hp('2.8%')}}
                 />
                 <Text
                   style={{
@@ -465,8 +556,7 @@ const ProfileDetails = props => {
                   marginTop: hp('1%'),
                   textAlign: 'center',
                   // marginHorizontal:10
-                }}
-              >
+                }}>
                 For Safe private calls,you will be charged
               </Text>
               <Text
@@ -476,12 +566,13 @@ const ProfileDetails = props => {
                   fontSize: hp('1.5%'),
                   textAlign: 'center',
                   // marginHorizontal:10
-                }}
-              >
+                }}>
                 {userData?.user?.hostuser_fees} coins per minute
               </Text>
               <TouchableOpacity
-                onPress={() => props.navigation.navigate('MyWallet',userData?.appData?.user)}
+                onPress={() =>
+                  props.navigation.navigate('MyWallet', userData?.appData?.user)
+                }
                 style={styles.hin}>
                 <Text style={styles.enter}>Get coins</Text>
               </TouchableOpacity>
@@ -489,7 +580,7 @@ const ProfileDetails = props => {
           </Modal>
         </View>
 
-        <View style={{ bottom: 0 }}>
+        <View style={{bottom: 0}}>
           <Modal
             isVisible={myModal1}
             animationIn="slideInUp"
@@ -542,8 +633,7 @@ const ProfileDetails = props => {
                   </Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={_block}>
+              <TouchableOpacity onPress={_block}>
                 <View
                   style={{
                     width: wp('80%'),
@@ -587,7 +677,7 @@ const ProfileDetails = props => {
           </Modal>
         </View>
 
-        <View style={{ bottom: 0 }}>
+        <View style={{bottom: 0}}>
           <Modal
             isVisible={myModal2}
             animationIn="slideInUp"
@@ -696,7 +786,7 @@ const styles = StyleSheet.create({
   enter: {
     fontSize: hp('2%'),
     fontWeight: 'bold',
-    color:'#000'
+    color: '#000',
   },
   ok: {
     height: hp('6%'),

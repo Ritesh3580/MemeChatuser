@@ -22,6 +22,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import SimpleToast from 'react-native-simple-toast';
 import {baseurl, localBaseurl, token} from '../config/baseurl';
 import { useIsFocused } from '@react-navigation/native';
+import Colors from '../Assetst/Constants/Colors';
+import moment from 'moment';
 
 const Edit = ({navigation, route}) => {
   const [name, setName] = useState('');
@@ -35,6 +37,8 @@ const Edit = ({navigation, route}) => {
   const [phoneNo, setPhoneNo] = useState('');
   const [selectedRelationship, setselectedRelationship] = useState('');
   const isFocused = useIsFocused();
+
+  const formattedDate = moment(date).format('Do MMMM YYYY');
 
   useEffect(()=>{
     if(route.params?.city){
@@ -98,6 +102,7 @@ const Edit = ({navigation, route}) => {
       });
   };
 
+  console.log("Date.................",formattedDate);
 
   return (
     <SafeAreaView>
@@ -150,7 +155,7 @@ const Edit = ({navigation, route}) => {
                 paddingLeft: wp('2.5%'),
               }}>
               <Text style={{fontSize: hp('2%'), color: '#999999'}}>
-                NickName
+                Name
               </Text>
             </View>
 
@@ -165,6 +170,7 @@ const Edit = ({navigation, route}) => {
                   height: hp('6%'),
                   textAlign: 'right',
                   color: '#000000',
+                  fontWeight:'bold'
                 }}
                 onChange={E => nameUser(E)}
                 defaultValue={name}
@@ -216,7 +222,7 @@ const Edit = ({navigation, route}) => {
               <Text
                 style={{
                   fontSize: hp('2%'),
-                  color: '#000000',
+                  color: Colors.lightGray,
                   marginRight: wp('1.2%'),
                 }}>
                 {profile && profile.userId}
@@ -295,7 +301,7 @@ const Edit = ({navigation, route}) => {
               alignItems: 'flex-end',
               paddingRight: wp('2.5%'),
             }}>
-            <Text style={{fontSize: hp('2%'), color: '#000000'}}>
+            <Text style={{fontSize: hp('2%'), color: Colors.lightGray}}>
               {profile && profile.phone}
             </Text>
           </View>
@@ -329,7 +335,7 @@ const Edit = ({navigation, route}) => {
               alignItems: 'flex-end',
               paddingRight: wp('2.5%'),
             }}>
-            <Text style={{fontSize: hp('2%'), color: '#000000'}}>
+            <Text style={{fontSize: hp('2%'), color: Colors.lightGray}}>
               {profile && profile.gender}
             </Text>
           </View>
@@ -364,8 +370,8 @@ const Edit = ({navigation, route}) => {
               alignItems: 'flex-end',
               paddingRight: wp('2.5%'),
             }}>
-            <Text style={{fontSize: hp('2%'), color: '#000000'}}>
-              {profile && profile.dateOfBirth}
+            <Text style={{fontSize: hp('2%'), color: Colors.lightGray}}>
+              {profile && formattedDate}
             </Text>
           </View>
         </View>
@@ -404,7 +410,7 @@ const Edit = ({navigation, route}) => {
               paddingRight: wp('7.5%'),
               //marginRight:1000
             }}>
-            <Text style={{fontSize: hp('2%'), color: '#000000'}}>
+            <Text style={{fontSize: hp('2%'), color: Colors.lightGray}}>
               {profile && profile.email}
             </Text>
           </View>
@@ -455,7 +461,7 @@ const Edit = ({navigation, route}) => {
                   alignItems: 'center',
                 }}
                 onPress={() => navigation.navigate('ProfileEditLocation',location)}>
-                <Text style={{fontSize: hp('2%'), color: '#000000'}}>
+                <Text style={{fontSize: hp('2%'), color: '#000000', fontWeight:'bold'}}>
                   {profile && location}
                 </Text>
               </TouchableOpacity>
@@ -481,7 +487,7 @@ const Edit = ({navigation, route}) => {
               paddingLeft: wp('2.5%'),
             }}>
             <Text style={{fontSize: hp('2%'), color: '#999999'}}>
-              RelationShip
+              Relationship
             </Text>
           </View>
 
@@ -498,6 +504,7 @@ const Edit = ({navigation, route}) => {
                   fontSize: hp('2%'),
                   color: '#b15eff',
                   fontWeight: 'bold',
+                  
                 }}
               />
               <Picker.Item

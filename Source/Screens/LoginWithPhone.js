@@ -77,10 +77,10 @@ const LoginWithPhone = ({route, navigation,props}) => {
    const api = async () => {
     setGetValue(false);
     setIsOtpSent(false);
-    // alert('otp sent');
-   
-    // setOtp('');
-    axios
+    const isValidLength = num.length == 10;
+    const isValidFormat = /^(\+?\d{1,4})?[-. ]?(\(?\d{3}\)?[-. ]?)?\d{3}[-. ]?\d{4}$/.test( num );
+    if(isValidLength && isValidFormat){
+      axios
       .post(apiUrl, {
         phone: num,
       })
@@ -112,6 +112,11 @@ const LoginWithPhone = ({route, navigation,props}) => {
       .catch(function (error) {
         console.log(error);
       });
+    }
+    else{
+      SimpleToast.show('Please enter Correct number.', SimpleToast.LONG);
+    }
+   
   };
 
   const onPressVerifyOtp = () => {
@@ -448,11 +453,11 @@ const LoginWithPhone = ({route, navigation,props}) => {
               marginHorizontal: 28,
               marginVertical: 10,
               color: 'black',
-
+              fontWeight:'bold',
               justifyContent: 'center',
               alignSelf: 'center',
             }}>
-            Login withh Mobile Number
+            Login/SignUp
           </Text>
           <View style={styles.cunstyles1}>
             <TextInput
@@ -460,7 +465,8 @@ const LoginWithPhone = ({route, navigation,props}) => {
               placeholder=" Mobile number"
               placeholderTextColor="#888888"
               maxLength={10}
-              keyboardType="numeric"
+              keyboardType="number-pad"
+              backgroundColor="#F3F3F3"
              // value={phonenumber}
              onChange={v => number(v)}
             />

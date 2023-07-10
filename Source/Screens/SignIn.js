@@ -271,6 +271,7 @@ const SignIn = ({ navigation }) => {
                   alignSelf: 'center',
                 }}
               />
+              {/* <TouchableOpacity onPress={() => navigation.navigate("Profile")}> */}
               <Text
                 style={{
                   alignSelf: 'center',
@@ -279,6 +280,8 @@ const SignIn = ({ navigation }) => {
                 }}>
                 Sign in with
               </Text>
+              {/* </TouchableOpacity> */}
+            
               <View
                 style={{
                   backgroundColor: Colors.primaryGray,
