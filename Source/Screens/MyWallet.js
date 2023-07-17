@@ -19,7 +19,7 @@ import {
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Feather from 'react-native-vector-icons/Feather';
+import Fontisto from 'react-native-vector-icons/Fontisto';
 import axios from 'axios';
 import {localBaseurl} from '../config/baseurl';
 import {useEffect} from 'react';
@@ -617,13 +617,13 @@ const MyWallet = props => {
           </Text>
 
           <TouchableOpacity
-            onPress={_openDialer}
+           // onPress={_openDialer}
             style={{
               flexDirection: 'row',
               alignSelf: 'center',
               paddingTop: hp('0.5%'),
             }}>
-            <Feather name="headphones" size={hp('2%')} color="#000" />
+            <Fontisto name="email" size={hp('2%')} color="#000" />
             <Text
               style={{
                 fontSize: hp('1.8%'),
@@ -634,7 +634,7 @@ const MyWallet = props => {
                 textDecorationLine: 'underline',
                 marginLeft: wp('1%'),
               }}>
-              Customer Services.
+              info@catchwoo.com
             </Text>
           </TouchableOpacity>
         </View>

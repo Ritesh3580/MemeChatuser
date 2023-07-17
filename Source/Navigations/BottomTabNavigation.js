@@ -1,9 +1,14 @@
-import React, { Component, useEffect, useLayoutEffect } from 'react';
-import { Alert, AppState, PermissionsAndroid, Platform } from 'react-native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNavigationContainerRef, getFocusedRouteNameFromRoute, StackActions, useNavigation } from '@react-navigation/native';
-import { NavigationContainer } from '@react-navigation/native';
+import React, {Component, useEffect, useLayoutEffect} from 'react';
+import {Alert, AppState, PermissionsAndroid, Platform} from 'react-native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {
+  createNavigationContainerRef,
+  getFocusedRouteNameFromRoute,
+  StackActions,
+  useNavigation,
+} from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import LinearGradient from 'react-native-linear-gradient';
 import Home from '../Screens/Home';
@@ -12,40 +17,48 @@ import Language from '../Screens/Language';
 import Delete from '../Screens/Delete';
 import History from '../Screens/History';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Colors from '../Assetst/Constants/Colors';
 import ProfileScreen from '../Screens/Profile';
 import ProfileEdit from '../Screens/ProfileEdit';
 import Messages from '../Screens/Messages';
 import axios from 'axios';
-import { baseurl, localBaseurl } from '../config/baseurl';
+import {baseurl, localBaseurl} from '../config/baseurl';
 import messaging from '@react-native-firebase/messaging';
-import { storage } from '../store/MMKV';
-import { zego_config } from '../config/ZegoConfig';
+import {storage} from '../store/MMKV';
+import {zego_config} from '../config/ZegoConfig';
 // import { pushToScreen } from './StackNavigation';
-import notifee, { AuthorizationStatus, EventType, AndroidImportance, AndroidVisibility } from '@notifee/react-native';
+import notifee, {
+  AuthorizationStatus,
+  EventType,
+  AndroidImportance,
+  AndroidVisibility,
+} from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator } from 'react-native-paper';
-import PushNotification from "react-native-push-notification";
+import {ActivityIndicator} from 'react-native-paper';
+import PushNotification from 'react-native-push-notification';
 import ChatRoom from '../Screens/ChatRoom';
 import ZIM from 'zego-zim-react-native';
-import { useZIM } from '../hooks/zim';
+import {useZIM} from '../hooks/zim';
 import Setting from '../Screens/Settings';
 import MyWallet from '../Screens/MyWallet';
 import BlockList from '../Screens/BlockList';
-import { FollowsFollowers } from './TopTabNavigation.js';
+import {FollowsFollowers} from './TopTabNavigation.js';
 import TopWeekly from '../Screens/TopWeekly';
 import BackgroundTimer from 'react-native-background-timer';
 import MissedCall from '../Screens/MissedCall';
 import Messages1 from '../Screens/Messages1';
 import AdminNotification from '../Screens/AdminNotification';
-import { Item } from 'react-native-paper/lib/typescript/components/List/List';
-import { CheckBox } from '@ui-kitten/components';
-import { white } from 'react-native-paper/lib/typescript/styles/colors';
-import { View } from 'react-native-animatable';
-import { color, Value } from 'react-native-reanimated';
-import { useState } from 'react';
+import {Item} from 'react-native-paper/lib/typescript/components/List/List';
+import {CheckBox} from '@ui-kitten/components';
+import {white} from 'react-native-paper/lib/typescript/styles/colors';
+import {View} from 'react-native-animatable';
+import {color, Value} from 'react-native-reanimated';
+import {useState} from 'react';
+// import NotificationSounds from 'react-native-notification-sounds';
 
+// // Retrieve a list of system notification sounds
+// const soundsList = await NotificationSounds.getNotifications('notification');
 
 notifee.createChannel({
   id: 'callinvite',
@@ -58,34 +71,42 @@ notifee.createChannel({
   // Check below link for get more sound \/\/\/\/\/\/\/
   // https://clideo.com/merge-audio
   // https://www.zedge.net/find/ringtones/sound-effects
-  sound: 'call_invite',
+  sound: 'morning',
+  // sound: soundsList[0].url,
 });
 
 PushNotification.createChannel({
-  channelId: "missedCall",
-  channelName: "Missed Call"
+  channelId: 'missedCall',
+  channelName: 'Missed Call',
 });
+
+// console.log("Sound list .......///",soundsList);
 
 //\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ Code for APP been killed \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 
-// Store the RoomID in global section while the APP has been killed. 
+// Store the RoomID in global section while the APP has been killed.
 // Then you can read it on App component call 'componentDidMount', if this variable with an empty value means it launches by the user, otherwise, launch by FCM notification.
 var killedIncomingCallRoomId = '';
 
-
-
 // Display a message while APP has been killed, trigger by FCM
 async function onBackgroundMessageReceived(message) {
-  console.log("Message---->>>>>: ", message);
+  console.log('Message---->>>>>: ', message);
   if (message.data?.roomID) {
     killedIncomingCallRoomId = message.data.roomID;
     notifee.displayNotification({
-      title: '<p style="color: #4caf50;"><b>' + '📞 ' + message.data.callerUserName + ' incomi----ng call..' + '</span></p></b></p>',
+      title:
+        '<p style="color: #4caf50;"><b>' +
+        '📞 ' +
+        message.data.callerUserName +
+        ' incomi----ng call..' +
+        '</span></p></b></p>',
       body: 'Tap to view contact.',
-      data: { "roomID": message.data.roomID, "callType": message.data.callType },
+      data: {roomID: message.data.roomID, callType: message.data.callType},
       android: {
         channelId: 'callinvite',
         largeIcon: message.data.callerIconUrl,
+        vibration: true,
+        vibrationPattern: [300, 500],
         // Launch the app on lock screen
         fullScreenAction: {
           // For Android Activity other than the default:
@@ -116,9 +137,11 @@ async function onBackgroundMessageReceived(message) {
       },
     });
     console.log('Show completed.');
-  }
-  else {
-    if (message.notification?.body == 'Online' || message.notification?.body == 'offline') {
+  } else {
+    if (
+      message.notification?.body == 'Online' ||
+      message.notification?.body == 'offline'
+    ) {
     }
   }
 }
@@ -133,8 +156,6 @@ class BottomTabNavigation extends Component {
   navigationRef;
   messageListener;
 
-  
-
   state = {
     user: null,
     zegoToken: '',
@@ -144,63 +165,66 @@ class BottomTabNavigation extends Component {
     appState: AppState.currentState,
   };
 
-
   componentDidMount() {
     this.onAppBootstrap();
     AppState.addEventListener('change', this._handleAppStateChange);
     // _updateStatus();
     this._updateOnlineStatus();
-   
- 
-  };
+  }
 
   componentWillUnmount() {
     this.messageListener;
     AppState.removeEventListener('change', this._handleAppStateChange);
-  };
+  }
 
   _updateOnlineStatus = async () => {
     const token = await AsyncStorage.getItem('token');
     console.log(token);
-    let header = { Authorization: `Bearer ${token}` }
-    axios.put(baseurl + 'userUpdateStatusOnline', {}, { headers: header })
+    let header = {Authorization: `Bearer ${token}`};
+    axios
+      .put(baseurl + 'userUpdateStatusOnline', {}, {headers: header})
       .then(resp => {
-        console.log("appstate -->>", resp.data);
+        console.log('appstate -->>', resp.data);
       })
       .catch(err => {
         console.log('appstate -->>', err.response.data);
-      })
+      });
   };
 
   _updateOfflineStatus = async () => {
     const token = await AsyncStorage.getItem('token');
-    let header = { Authorization: `Bearer ${token}` }
-    axios.put(baseurl + 'userUpdateStatusOffline', {}, { headers: header })
+    let header = {Authorization: `Bearer ${token}`};
+    axios
+      .put(baseurl + 'userUpdateStatusOffline', {}, {headers: header})
       .then(resp => {
-        console.log("appstate -->>", resp.data);
+        console.log('appstate -->>', resp.data);
       })
       .catch(err => {
         console.log('appstate -->>', err.response.data);
-      })
+      });
   };
 
-  _handleAppStateChange = async (nextAppState) => {
-    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+  _handleAppStateChange = async nextAppState => {
+    if (
+      this.state.appState.match(/inactive|background/) &&
+      nextAppState === 'active'
+    ) {
       console.log('App has come to the foreground!');
       this._updateOnlineStatus();
     }
-    this.setState({ appState: nextAppState });
+    this.setState({appState: nextAppState});
     if (nextAppState === 'background') {
       console.log('App is in background!');
       this._updateOfflineStatus();
     }
-  }
+  };
 
-  handleIncomingCallScrr(detail){
-
-    if(this.state.user && this.state.zegoToken && this.state.fcmToken != ''){
-
-      console.log("Yes..................................++++valisd",this.state.user);
+  handleIncomingCallScrr(detail) {
+    if (this.state.user && this.state.zegoToken && this.state.fcmToken != '') {
+      console.log(
+        'Yes..................................++++valisd',
+        this.state.user,
+      );
 
       var appData = {
         appID: zego_config.appID,
@@ -208,21 +232,19 @@ class BottomTabNavigation extends Component {
         user: this.state.user,
         zegoToken: this.state.zegoToken,
       };
-
     }
 
-    console.log('Navigate to the call screen With incomming call',appData);
-    pushToScreenVc('InCommingVideoCall',{
-      'detail' : detail,
-      'appData': appData,
-      
+    console.log('Navigate to the call screen With incomming call', appData);
+    pushToScreenVc('InCommingVideoCall', {
+      detail: detail,
+      appData: appData,
     });
   }
 
   handleIncomingCall(roomID) {
     console.log('Navigate to home with incoming call..........');
-    pushToScreen('Home', { 'roomID': roomID });
-  };
+    pushToScreen('Home', {roomID: roomID});
+  }
 
   async grantPermissions() {
     // Android: Dynamically obtaining device permissions
@@ -243,7 +265,9 @@ class BottomTabNavigation extends Component {
         const isVideoGranted = await grantedCamera;
         // const isNotificationGranted = await grantedNotification;
         if (!isAudioGranted) {
-          ungrantedPermissions.push(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
+          ungrantedPermissions.push(
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+          );
         }
         if (!isVideoGranted) {
           ungrantedPermissions.push(PermissionsAndroid.PERMISSIONS.CAMERA);
@@ -263,7 +287,7 @@ class BottomTabNavigation extends Component {
         console.warn('requestMultiple', data);
       });
     }
-  };
+  }
 
   async onAppBootstrap() {
     await this.checkPermission();
@@ -280,9 +304,7 @@ class BottomTabNavigation extends Component {
     if (killedIncomingCallRoomId != '') {
       this.handleIncomingCallScrr(killedIncomingCallRoomId);
     }
-  };
-
-  
+  }
 
   // async getValue(){
   //   const countval = await AsyncStorage.getItem('messageCount');
@@ -291,7 +313,7 @@ class BottomTabNavigation extends Component {
   //   })
   //   // console.log("mess...........................++", cmb);
   // }
-  
+
   async checkPermission() {
     // For android
     await this.grantPermissions();
@@ -301,12 +323,11 @@ class BottomTabNavigation extends Component {
       // await this.checkBatteryOptimization();
       // await this.checkPowerManagerRestrictions();
     }
-    // For ios 
+    // For ios
     else {
       await this.requestiOSUserPermission();
     }
-
-  };
+  }
   async checkAndroidNotificationPermission() {
     const settings = await notifee.getNotificationSettings();
 
@@ -315,7 +336,7 @@ class BottomTabNavigation extends Component {
     } else if (settings.authorizationStatus == AuthorizationStatus.DENIED) {
       console.log('Notification permissions has been denied');
     }
-  };
+  }
   async checkAndroidChannelPermission(channelId) {
     const channel = await notifee.getChannel(channelId);
     // console.log(">>>>>>>>", channel)
@@ -334,17 +355,17 @@ class BottomTabNavigation extends Component {
             onPress: async () => await notifee.openNotificationSettings(),
           },
           {
-            text: "Cancel",
-            onPress: () => console.log("Cancel Pressed"),
-            style: "cancel"
+            text: 'Cancel',
+            onPress: () => console.log('Cancel Pressed'),
+            style: 'cancel',
           },
         ],
-        { cancelable: false }
+        {cancelable: false},
       );
     } else {
       console.log('Channel is enabled');
     }
-  };
+  }
   // Need for background message
   async requestiOSUserPermission() {
     const authStatus = await messaging().requestPermission();
@@ -355,10 +376,11 @@ class BottomTabNavigation extends Component {
     if (enabled) {
       console.log('Authorization status:', authStatus);
     }
-  };
+  }
   async checkBatteryOptimization() {
-    const batteryOptimizationEnabled = await notifee.isBatteryOptimizationEnabled();
-    console.log("batteryOptimizationEnabled", batteryOptimizationEnabled)
+    const batteryOptimizationEnabled =
+      await notifee.isBatteryOptimizationEnabled();
+    console.log('batteryOptimizationEnabled', batteryOptimizationEnabled);
     if (batteryOptimizationEnabled) {
       // 2. ask your users to disable the feature
       Alert.alert(
@@ -368,21 +390,22 @@ class BottomTabNavigation extends Component {
           // 3. launch intent to navigate the user to the appropriate screen
           {
             text: 'OK, open settings',
-            onPress: async () => await notifee.openBatteryOptimizationSettings(),
+            onPress: async () =>
+              await notifee.openBatteryOptimizationSettings(),
           },
           {
-            text: "Cancel",
-            onPress: () => console.log("Cancel Pressed"),
-            style: "cancel"
+            text: 'Cancel',
+            onPress: () => console.log('Cancel Pressed'),
+            style: 'cancel',
           },
         ],
-        { cancelable: false }
+        {cancelable: false},
       );
-    };
-  };
+    }
+  }
   async checkPowerManagerRestrictions() {
     const powerManagerInfo = await notifee.getPowerManagerInfo();
-    console.log("powerManagerInfo", powerManagerInfo.activity)
+    console.log('powerManagerInfo', powerManagerInfo.activity);
     if (powerManagerInfo.activity) {
       // 2. ask your users to adjust their settings
       Alert.alert(
@@ -395,15 +418,15 @@ class BottomTabNavigation extends Component {
             onPress: async () => await notifee.openPowerManagerSettings(),
           },
           {
-            text: "Cancel",
-            onPress: () => console.log("Cancel Pressed"),
-            style: "cancel"
+            text: 'Cancel',
+            onPress: () => console.log('Cancel Pressed'),
+            style: 'cancel',
           },
         ],
-        { cancelable: false }
+        {cancelable: false},
       );
-    };
-  };
+    }
+  }
 
   async prepareBasicData() {
     // Get fcm token
@@ -417,13 +440,19 @@ class BottomTabNavigation extends Component {
     // Save the fcm token with user id to server, then you can invite someone to call by user's id
     const requestOptions = {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userID: this.state.user.userId, token: this.state.fcmToken })
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        userID: this.state.user.userId,
+        token: this.state.fcmToken,
+      }),
     };
-    const reps = await fetch(`${zego_config.serverUrl}/store_fcm_token`, requestOptions);
+    const reps = await fetch(
+      `${zego_config.serverUrl}/store_fcm_token`,
+      requestOptions,
+    );
     console.log('Store fcm token reps success ');
     await this.updateZegoToken();
-  };
+  }
 
   async updateFcmToken() {
     // Register the device with FCM
@@ -433,26 +462,31 @@ class BottomTabNavigation extends Component {
     const access_token = await AsyncStorage.getItem('token');
     console.log('Fcm token: ', token);
     this.setState({
-      fcmToken: token
+      fcmToken: token,
     });
-    axios.put(localBaseurl + 'addfcmToken', {
-      fcmToken: token
-    },
-      {
-        headers: { Authorization: `Bearer ${access_token}` }
-      }).then(resp => {
+    axios
+      .put(
+        localBaseurl + 'addfcmToken',
+        {
+          fcmToken: token,
+        },
+        {
+          headers: {Authorization: `Bearer ${access_token}`},
+        },
+      )
+      .then(resp => {
         console.log('fcm token put', resp.data);
-      }).catch(err => {
-        console.log('fcm token put', err.response.data);
       })
+      .catch(err => {
+        console.log('fcm token put', err.response.data);
+      });
+  }
 
-  };
-
-  async getAllHostUser (){
+  async getAllHostUser() {
     const token = await AsyncStorage.getItem('token');
     axios
       .get(localBaseurl + 'findHostuser', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {Authorization: `Bearer ${token}`},
       })
       .then(async res => {
         // console.log("ALL Hosts---->>>>>>", res.data);
@@ -468,18 +502,20 @@ class BottomTabNavigation extends Component {
 
   async setCurrentUser() {
     const token = await AsyncStorage.getItem('token');
-    const resp = await axios.get(localBaseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } });
+    const resp = await axios.get(localBaseurl + 'showProfile', {
+      headers: {Authorization: `Bearer ${token}`},
+    });
     // console.log("set current user====",resp.data)
     if (resp.data) {
       await AsyncStorage.setItem('uid', resp.data.uid);
       this.setState({
-        user: resp.data
-      })
+        user: resp.data,
+      });
       // console.log('ok');
     } else {
-      console.log("get profile error");
+      console.log('get profile error');
     }
-  };
+  }
 
   async updateZegoToken() {
     // Obtain the token interface provided by the App Server
@@ -496,127 +532,155 @@ class BottomTabNavigation extends Component {
       const tokenObj = await reps.json();
       console.log('Get zego token succeed');
       this.setState({
-        zegoToken: tokenObj['token']
+        zegoToken: tokenObj['token'],
       });
       storage.set('zegoToken', tokenObj['token']);
     } else {
       console.warn('Get zego token error: ', reps.text);
     }
-  };
+  }
 
   async setupNotification() {
+    // console.log("-------------////////////////////////////////////////-------token",this.state.zegoToken);
 
-  
-
-   // console.log("-------------////////////////////////////////////////-------token",this.state.zegoToken);
-
-    notifee.onForegroundEvent(async ({ type, detail }) => {
+    notifee.onForegroundEvent(async ({type, detail}) => {
       if (type === EventType.PRESS) {
         console.log('User press on froeground event: ', detail);
         this.timer !== undefined ? clearTimeout(this.timer) : null;
-        this.background_timer !== undefined ? BackgroundTimer.clearTimeout(this.background_timer) : null;
+        this.background_timer !== undefined
+          ? BackgroundTimer.clearTimeout(this.background_timer)
+          : null;
         {
-          console.log("Presss...........................///sssss");
+          console.log('Presss...........................///sssss');
 
           this.handleIncomingCallScrr(detail);
 
           await notifee.cancelAllNotifications();
-
-          
         }
-       // await notifee.cancelAllNotifications();
+        // await notifee.cancelAllNotifications();
       } else if (type == EventType.ACTION_PRESS && detail.pressAction.id) {
         if (detail.pressAction.id == 'accept') {
           console.log('Accept the call...', detail.notification.data.roomID);
           this.handleIncomingCall(detail.notification.data.roomID);
         }
         this.timer !== undefined ? clearTimeout(this.timer) : null;
-        this.background_timer !== undefined ? BackgroundTimer.clearTimeout(this.background_timer) : null;
+        this.background_timer !== undefined
+          ? BackgroundTimer.clearTimeout(this.background_timer)
+          : null;
         await notifee.cancelAllNotifications();
-      }
-      else {
+      } else {
         const token = await AsyncStorage.getItem('token');
         this.timer = setTimeout(async () => {
           await notifee.cancelAllNotifications();
           PushNotification.localNotification({
-            channelId: "missedCall",
+            channelId: 'missedCall',
             title: `Missed Call`,
-            message: `You have a missed call from ${detail.notification?.data?.callerUserName || detail.notification?.data?.roomID || '_unknown_'}`,
-            bigText: ``
+            message: `You have a missed call from ${
+              detail.notification?.data?.callerUserName ||
+              detail.notification?.data?.roomID ||
+              '_unknown_'
+            }`,
+            bigText: ``,
           });
 
-          axios.get(baseurl + 'getOneUserProfile/' + detail.notification?.data?.roomID,
-           { headers: { Authorization: `Bearer ${token}` } })
+          axios
+            .get(
+              baseurl +
+                'getOneUserProfile/' +
+                detail.notification?.data?.roomID,
+              {headers: {Authorization: `Bearer ${token}`}},
+            )
             .then(async resp => {
               let uid = await AsyncStorage.getItem('uid');
               let data = {
-                "uid": uid,
-                "videocallstatus": {
-                  "hostuserId": resp.data.getuser?._id,
-                  "status": "missed call"
-                }
+                uid: uid,
+                videocallstatus: {
+                  hostuserId: resp.data.getuser?._id,
+                  status: 'missed call',
+                },
               };
               // console.log("data-->>",data);
-              axios.post(baseurl + 'uservideocallstatus', data,
-                { headers: { Authorization: `Bearer ${token}` } })
+              axios
+                .post(baseurl + 'uservideocallstatus', data, {
+                  headers: {Authorization: `Bearer ${token}`},
+                })
                 .then(response => {
-                  console.log("Post Missed call--->>", response.data);
+                  console.log('Post Missed call--->>', response.data);
                 })
                 .catch(error => {
-                  console.log("Post Missed call--->>", error.response.data);
+                  console.log('Post Missed call--->>', error.response.data);
                 })
                 .catch(err => {
-                  console.log("get one host--->>", err.response.data);
-                })
-            })
+                  console.log('get one host--->>', err.response.data);
+                });
+            });
         }, 30000);
       }
     });
-    notifee.onBackgroundEvent(async ({ type, detail }) => {
+    notifee.onBackgroundEvent(async ({type, detail}) => {
       // console.log('on background event: ', this.background_timer);
       if (detail.notification?.data && detail.notification.data.roomID) {
         if (type === EventType.PRESS) {
-          console.log('User press on background event: ', detail)
-          this.background_timer !== undefined ? BackgroundTimer.clearTimeout(this.background_timer) : null;
+          console.log('User press on background event: ', detail);
+          this.background_timer !== undefined
+            ? BackgroundTimer.clearTimeout(this.background_timer)
+            : null;
           await notifee.cancelAllNotifications();
         } else if (type == EventType.ACTION_PRESS && detail.pressAction.id) {
           if (detail.pressAction.id == 'accept') {
-            console.log('Accept the call...', detail.notification.data.roomID)
+            console.log('Accept the call...', detail.notification.data.roomID);
             this.handleIncomingCall(detail.notification.data.roomID);
           }
-          this.background_timer !== undefined ? BackgroundTimer.clearTimeout(this.background_timer) : null;
+          this.background_timer !== undefined
+            ? BackgroundTimer.clearTimeout(this.background_timer)
+            : null;
           await notifee.cancelAllNotifications();
         } else {
           const token = await AsyncStorage.getItem('token');
           this.background_timer = BackgroundTimer.setTimeout(async () => {
-            axios.get(baseurl + 'getOneUserProfile/' + detail.notification?.data?.roomID, { headers: { Authorization: `Bearer ${token}` } })
+            axios
+              .get(
+                baseurl +
+                  'getOneUserProfile/' +
+                  detail.notification?.data?.roomID,
+                {headers: {Authorization: `Bearer ${token}`}},
+              )
               .then(async resp => {
                 let uid = await AsyncStorage.getItem('uid');
                 let data = {
-                  "uid": uid,
-                  "videocallstatus": {
-                    "hostuserId": resp.data.getuser?._id,
-                    "status": "missed call"
-                  }
+                  uid: uid,
+                  videocallstatus: {
+                    hostuserId: resp.data.getuser?._id,
+                    status: 'missed call',
+                  },
                 };
-                axios.post(baseurl + 'uservideocallstatus', data,
-                  { headers: { Authorization: `Bearer ${token}` } })
+                axios
+                  .post(baseurl + 'uservideocallstatus', data, {
+                    headers: {Authorization: `Bearer ${token}`},
+                  })
                   .then(response => {
-                    console.log("Post Missed call---user video call>>", response.data);
+                    console.log(
+                      'Post Missed call---user video call>>',
+                      response.data,
+                    );
                   })
                   .catch(error => {
-                    console.log("Post Missed call--->>", error.response.data);
+                    console.log('Post Missed call--->>', error.response.data);
                   })
                   .catch(err => {
-                    console.log("get one host--->>", err.response.data);
-                  })
-              })
+                    console.log('get one host--->>', err.response.data);
+                  });
+              });
             await notifee.cancelAllNotifications();
             PushNotification.localNotification({
-              channelId: "missedCall",
+              channelId: 'missedCall',
               title: `Missed Call`,
-              message: `You have a missed call from ${detail.notification?.data?.callerUserName || detail.notification?.data?.roomID || '_unknown_'}`,
-              bigText: ``
+              message: `You have a missed call from ${
+                detail.notification?.data?.callerUserName ||
+                detail.notification?.data?.roomID ||
+                '_unknown_'
+              }`,
+              bigText: ``,
             });
           }, 30000);
         }
@@ -625,28 +689,34 @@ class BottomTabNavigation extends Component {
 
     // Binding FCM message callback for APP in foreground
     this.messageListener = messaging().onMessage(this.onMessageReceived);
-  };
+  }
   // Receive message from FCM and display the notification
   async onMessageReceived(message) {
     // invokeApp();
-    console.log("Foreground Message:---->>>> ", message);
+    console.log('Foreground Message:---->>>> ', message);
     if (message.data?.roomID) {
       notifee.displayNotification({
-      
-        title: '<p style="color: #4caf50, height: 1000px;"><b>' + '📞 ' + message.data.callerUserName + ' incomi+++ng call..' + '</span></p></b></p>',
+        title:
+          '<p style="color: #4caf50, height: 1000px;"><b>' +
+          '📞 ' +
+          message.data.callerUserName +
+          ' incomi+++ng call..' +
+          '</span></p></b></p>',
         body: 'Tap to view contact.',
-        data: { "roomID": message.data.roomID, "callType": message.data.callType },
+        data: {roomID: message.data.roomID, callType: message.data.callType},
         android: {
           channelId: 'callinvite',
           //fullScreenIntent: true,
           largeIcon: message.data.callerIconUrl,
+          vibration: true,
+          vibrationPattern: [300, 500],
           // Launch the app on lock screen
           fullScreenAction: {
             // For Android Activity other than the default:
             id: 'full_screen_body_press',
             launchActivity: 'default',
           },
-          
+
           pressAction: {
             id: 'body_press',
             launchActivity: 'default',
@@ -671,16 +741,17 @@ class BottomTabNavigation extends Component {
           ],
         },
       });
-      console.log('Show completed.')
-    }
-    else {
-      console.log("admin foreground notification");
-      if (message.notification?.body == 'online' || message.notification?.body == 'offline') {
+      console.log('Show completed.');
+    } else {
+      console.log('admin foreground notification');
+      if (
+        message.notification?.body == 'online' ||
+        message.notification?.body == 'offline'
+      ) {
         // PushNotification.clearAllNotifications();
       }
     }
     // const [modalVisible, setModalVisible] = useState(false);
-
 
     // return (
     //   <View style={{ centeredView: {
@@ -754,39 +825,31 @@ class BottomTabNavigation extends Component {
     //     </Pressable>
     //   </View>
     // );
-    
-    
+  }
 
-  };
-
-  getTabBarVisibility = (route) => {
+  getTabBarVisibility = route => {
     const routeName = getFocusedRouteNameFromRoute(route);
-    if (routeName === "ChatRoom" ||
-      routeName === "MyWallet" ||
-      routeName === "Settings" ||
-      routeName === "BlockList" ||
-      routeName === "TopWeekly" ||
-      routeName === "MissedCall" ||
-      routeName === "Messages1" ||
-      routeName === "AdminNotification"
+    if (
+      routeName === 'ChatRoom' ||
+      routeName === 'MyWallet' ||
+      routeName === 'Settings' ||
+      routeName === 'BlockList' ||
+      routeName === 'TopWeekly' ||
+      routeName === 'MissedCall' ||
+      routeName === 'Messages1' ||
+      routeName === 'AdminNotification'
     ) {
-      return "none";
+      return 'none';
     }
-    return "flex";
+    return 'flex';
   };
-
-  
-
 
   HomeStack(props) {
-
     // console.log(props.route.params);
 
-        //
-  //-----------------------------Sum of Messages------------------------------------//
-  //
-
-
+    //
+    //-----------------------------Sum of Messages------------------------------------//
+    //
 
     return (
       <Stack.Navigator>
@@ -794,60 +857,57 @@ class BottomTabNavigation extends Component {
           name="Home"
           initialParams={props.route.params}
           component={Home}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="ChatRoom"
           component={ChatRoom}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="TopWeekly"
           initialParams={props.route.params}
           component={TopWeekly}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="MyWallet"
           component={MyWallet}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Messages1"
           component={Messages1}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="MissedCall"
           initialParams={props.route.params}
           component={MissedCall}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="AdminNotification"
           initialParams={props.route.params}
           component={AdminNotification}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
       </Stack.Navigator>
     );
-  };
+  }
 
   MessageStack(props) {
-
     // const [loading, setLoading] = React.useState(true);
     // const [hostData, setHostData] = React.useState(null);
 
     // const [reportesNot, setReportesNot] = useState(0);
 
-
     // const [state, zimAction] = useZIM();
 
     // useEffect(() => {
     //   zimAction.queryConversationList();
-    //  // findAllHost()    
+    //  // findAllHost()
     // }, []);
-
 
     //   let  MessageList=state.convs;
     //   console.log("conaaa.........",MessageList);
@@ -856,7 +916,7 @@ class BottomTabNavigation extends Component {
     //         item.unreadMessageCount
     //         )
     //       })
-    
+
     //    let sum=0;
     //   for(let i=0; i<add.length; i += 1) {
     //     sum += add[i]
@@ -869,14 +929,6 @@ class BottomTabNavigation extends Component {
     //       tabBarBadge: reportesNot,
     //     });
     //   }, [reportesNot])
-
-      
-
-    
-     
-  
-    
-    
 
     // async function findAllHost() {
     //   const token = await AsyncStorage.getItem('token');
@@ -895,8 +947,7 @@ class BottomTabNavigation extends Component {
     //       setLoading(false);
     //     });
     // };
-    
-  
+
     // const lastMessage = item => {
     //   return item.lastMessage && item.lastMessage.message
     //     ? item.lastMessage.message.length > 20
@@ -904,7 +955,7 @@ class BottomTabNavigation extends Component {
     //       : item.lastMessage.message
     //     : '';
     // };
-  
+
     // const intoChat = (item) => {
     //   const pressedHostData = hostData?.find(host=> host.userId == item.senderUserID);
     //   // console.log(pressedHostData);
@@ -927,34 +978,34 @@ class BottomTabNavigation extends Component {
           name="Message"
           initialParams={props.route.params}
           component={Messages}
-          options={{ headerShown: false }}
-        //  badge = {{sum}}
+          options={{headerShown: false}}
+          //  badge = {{sum}}
         />
         <Stack.Screen
           name="ChatRoom"
           component={ChatRoom}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Messages1"
           component={Messages1}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="MissedCall"
           initialParams={props.route.params}
           component={MissedCall}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="AdminNotification"
           initialParams={props.route.params}
           component={AdminNotification}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
       </Stack.Navigator>
     );
-  };
+  }
 
   HistoryStack(props) {
     return (
@@ -963,21 +1014,21 @@ class BottomTabNavigation extends Component {
           name="Offers"
           initialParams={props.route.params}
           component={History}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="ChatRoom"
           component={ChatRoom}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="MyWallet"
           component={MyWallet}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
       </Stack.Navigator>
     );
-  };
+  }
 
   AccountStack(props) {
     // console.log(props.route.params);
@@ -986,82 +1037,72 @@ class BottomTabNavigation extends Component {
         <Stack.Screen
           name="ProfileEdit"
           component={ProfileEdit}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Delete"
           component={Delete}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="MyWallet"
           component={MyWallet}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Settings"
           component={Setting}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="BlockList"
           component={BlockList}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           initialParams={props.route.params}
           name="FollowsFollowers"
           component={FollowsFollowers}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
       </Stack.Navigator>
     );
-  };
+  }
 
+  render() {
+    //  console.log("--------------------->",set);
 
-  render() { 
-   
-   //  console.log("--------------------->",set);
+    //  const [loading, setLoading] = React.useState(true);
+    //  const [hostData, setHostData] = React.useState(null);
 
-  //  const [loading, setLoading] = React.useState(true);
-  //  const [hostData, setHostData] = React.useState(null);
- 
-  //  const [state, zimAction] = useZIM();
- 
-  //  useEffect(() => {
-  //    zimAction.queryConversationList();
-  //    findAllHost()
-  //  }, []);
+    //  const [state, zimAction] = useZIM();
 
-  //  async function findAllHost(){
-  //   const token = await AsyncStorage.getItem('token');
-  //   axios
-  //     .get(localBaseurl + 'findHostuser', {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then(async res => {
-  //       // console.log("ALL Hosts---->>>>>>", res.data);
-  //       setHostData(res.data);
-  //       setLoading(false);
-  //       storage.set('AllHost', JSON.stringify(res.data));
-  //     })
-  //     .catch(err => {
-  //       console.log('get all host error---->>>>', err.response.data);
-  //       setLoading(false);
-  //     });
-  //  };
+    //  useEffect(() => {
+    //    zimAction.queryConversationList();
+    //    findAllHost()
+    //  }, []);
 
-  //  const getUnread = item =>{
-  //    return item.unreadMessageCount
-  //  } ;
+    //  async function findAllHost(){
+    //   const token = await AsyncStorage.getItem('token');
+    //   axios
+    //     .get(localBaseurl + 'findHostuser', {
+    //       headers: { Authorization: `Bearer ${token}` },
+    //     })
+    //     .then(async res => {
+    //       // console.log("ALL Hosts---->>>>>>", res.data);
+    //       setHostData(res.data);
+    //       setLoading(false);
+    //       storage.set('AllHost', JSON.stringify(res.data));
+    //     })
+    //     .catch(err => {
+    //       console.log('get all host error---->>>>', err.response.data);
+    //       setLoading(false);
+    //     });
+    //  };
 
-
-
-
-   
-    
-    
-    
+    //  const getUnread = item =>{
+    //    return item.unreadMessageCount
+    //  } ;
 
     if (this.state.user && this.state.zegoToken && this.state.fcmToken != '') {
       var appData = {
@@ -1078,71 +1119,72 @@ class BottomTabNavigation extends Component {
           screenOptions={{
             headerShown: false,
             tabBarShowLabel: false,
-            tabBarStyle: { backgroundColor: '#fff' },
+            tabBarStyle: {backgroundColor: '#fff'},
             tabBarInactiveTintColor: Colors.black,
             tabBarActiveTintColor: Colors.pink,
             tabBarHideOnKeyboard: true,
           }}>
           <Tab.Screen
             name="Home2"
-            initialParams={{ 'appData': appData }}
+            initialParams={{appData: appData}}
             component={this.HomeStack}
-            options={({ route }) => ({
-             // tabBarBadge:[4],
-              tabBarStyle: [{ backgroundColor: '#fff' }, { display: this.getTabBarVisibility(route) }],
-              tabBarIcon: ({ color, size }) => (
+            options={({route}) => ({
+              // tabBarBadge:[4],
+              tabBarStyle: [
+                {backgroundColor: '#fff'},
+                {display: this.getTabBarVisibility(route)},
+              ],
+              tabBarIcon: ({color, size}) => (
                 <Ionicons name="home-outline" color={color} size={size} />
               ),
             })}
           />
           <Tab.Screen
             name="HistoryStack"
-            initialParams={{ 'appData': appData }}
+            initialParams={{appData: appData}}
             component={this.HistoryStack}
-            options={({ route }) => ({
-              tabBarStyle: [{ backgroundColor: '#fff' }, { display: this.getTabBarVisibility(route) }],
-              tabBarBadgeStyle: { backgroundColor: 'blue' },
-              tabBarIcon: ({ color, size }) => (
-                <MaterialCommunityIcons name="history" color={color} size={size}/>
+            options={({route}) => ({
+              tabBarStyle: [
+                {backgroundColor: '#fff'},
+                {display: this.getTabBarVisibility(route)},
+              ],
+              tabBarBadgeStyle: {backgroundColor: 'blue'},
+              tabBarIcon: ({color, size}) => (
+                <MaterialCommunityIcons
+                  name="history"
+                  color={color}
+                  size={size}
+                />
               ),
             })}
-          // options={{
-          //   // tabBarBadge: 3,
-          //   tabBarBadgeStyle: { backgroundColor: 'blue' },
-          //   tabBarIcon: ({ color, size }) => (
-          //     <Ionicons name="heart" color={color} size={size} />
-          //   ),
-          // }}
+            // options={{
+            //   // tabBarBadge: 3,
+            //   tabBarBadgeStyle: { backgroundColor: 'blue' },
+            //   tabBarIcon: ({ color, size }) => (
+            //     <Ionicons name="heart" color={color} size={size} />
+            //   ),
+            // }}
           />
-
-         
-      
-
 
           <Tab.Screen
             name="Call us"
             component={this.MessageStack}
-            initialParams={{ 'appData': appData }}
-            options={({ route, item }) => ({
-              tabBarStyle: [{ backgroundColor: '#fff' }, { display: this.getTabBarVisibility(route) }],
-             
-              // tabBarBadge:[useLayoutEffect()],
-             tabBarBadge:renderBadge(),
-              tabBarIcon: ({ color, size }) => (
+            initialParams={{appData: appData}}
+            options={({route, item}) => ({
+              tabBarStyle: [
+                {backgroundColor: '#fff'},
+                {display: this.getTabBarVisibility(route)},
+              ],
 
+              // tabBarBadge:[useLayoutEffect()],
+              tabBarBadge: renderBadge(),
+              tabBarIcon: ({color, size}) => (
                 <Ionicons
                   name="md-chatbubble-ellipses-outline"
                   color={color}
                   size={size}
-     
                 />
-              
               ),
-
-
-
-
-
 
               // tabBarIcon:({badgeCount =1,color,size}) =>(
               //   <View>
@@ -1159,49 +1201,48 @@ class BottomTabNavigation extends Component {
               //     </View>
               //     )
               //   }
-                  
+
               //   </View>
               // )
             })}
           />
           <Tab.Screen
             name="AccountStack"
-            initialParams={{ 'appData': appData }}
+            initialParams={{appData: appData}}
             component={this.AccountStack}
-            options={({ route }) => ({
-              tabBarStyle: [{ backgroundColor: '#fff' }, { display: this.getTabBarVisibility(route) }],
-              tabBarIcon: ({ color, size }) => (
+            options={({route}) => ({
+              tabBarStyle: [
+                {backgroundColor: '#fff'},
+                {display: this.getTabBarVisibility(route)},
+              ],
+              tabBarIcon: ({color, size}) => (
                 <Ionicons name="person-outline" color={color} size={size} />
               ),
             })}
           />
         </Tab.Navigator>
       );
-    }
-    else {
+    } else {
       // console.log(this.state.user,this.state.zegoToken,this.state.fcmToken);
-      return <ActivityIndicator />
+      return <ActivityIndicator />;
     }
-  };
-
+  }
 }
 
-
 export default BottomTabNavigation;
-
 
 // export default function MessageStack(props) {
 //   const [reportesNot, setReportesNot] = useState(0);
 //   .....
 //   const navigation = useNavigation();
-  
+
 //     useLayoutEffect(() => {
 //       navigation.setOptions({
 //         tabBarBadge: reportesNot,
 //       });
 //     }, [reportesNot])
 
-function renderBadge(){
+function renderBadge() {
   const [loading, setLoading] = React.useState(true);
   const [hostData, setHostData] = React.useState(null);
 
@@ -1210,37 +1251,29 @@ function renderBadge(){
   useEffect(() => {
     zimAction.queryConversationList();
     //findAllHost()
-
   }, []);
 
-  
+  let MessageList = state.convs;
+  console.log('mes............', MessageList);
+  let add = MessageList.map(item => {
+    return item.unreadMessageCount;
+  });
 
-   let MessageList=state.convs;
-   console.log("mes............",MessageList);
-   let add=MessageList.map((item)=>{
-    return(
-        item.unreadMessageCount
-        )
-      })
-
-      let sum=0;
-  for(let i=0; i<add.length; i += 1) {
-    sum += add[i]
+  let sum = 0;
+  for (let i = 0; i < add.length; i += 1) {
+    sum += add[i];
   }
 
-  console.log("sum_____________________sum",sum)
+  console.log('sum_____________________sum', sum);
 
-  if(sum > 0){
+  if (sum > 0) {
     return sum;
+  } else {
+    return;
   }
-  else{
-    return ;
-  }
-
- 
 }
 
-const navigationRef = createNavigationContainerRef()
+const navigationRef = createNavigationContainerRef();
 
 function pushToScreen(...args) {
   if (navigationRef.isReady()) {
@@ -1248,14 +1281,10 @@ function pushToScreen(...args) {
   }
 }
 
-function pushToScreenVc(...args){
-  if(navigationRef.isReady()){
+function pushToScreenVc(...args) {
+  if (navigationRef.isReady()) {
     navigationRef.dispatch(StackActions.push(...args));
   }
 }
 
-export {
-  navigationRef,
-  pushToScreen,
-  pushToScreenVc
-};
+export {navigationRef, pushToScreen, pushToScreenVc};

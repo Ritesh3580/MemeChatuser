@@ -25,6 +25,24 @@ import { ZegoExpressManager } from '../../ZegoExpressManager';
 import { ZegoMediaOptions } from '../../ZegoExpressManager/index.entity';
 import { baseurl, localBaseurl } from '../config/baseurl';
 
+import notifee, {
+    // AuthorizationStatus,
+    // EventType,
+    // AndroidImportance,
+    // AndroidVisibility,
+  } from '@notifee/react-native';
+
+  notifee.createChannel({
+    id: 'custom-sound',
+  name: 'Channel with custom sound',
+  sound: 'hollow',
+  })
+//   notifee.displayNotification({
+//     body: 'Custom sound',
+//     android: {
+//       sound: 'hollow',
+//     },
+//   });
 
 const styles = StyleSheet.create({
     // ZegoEasyExample
@@ -205,6 +223,11 @@ export default class CallPage extends Component {
             (updateType, userList, roomID) => {
                 console.warn('out roomUserUpdate------------->', updateType, userList, roomID);
                 console.log("leave ................1");
+
+                if( updateType == null && userList==null && roomID == null){
+                    console.log("sorry Cancel");
+                }
+               
             //    console.log("get Call------------------>",onRoomUserUpdate);
                 if (updateType == ZegoUpdateType.Add) {
                     console.log("&&&&&&&&&", this.remoteViewRef.current, findNodeHandle(this.remoteViewRef.current))
@@ -230,7 +253,13 @@ export default class CallPage extends Component {
                         console.log("leave ................3");
                     }
                 }
+                else{
+                    console.log('Host is Left Please Cut a Call');
+                    SimpleToast.show('Host is Left', SimpleToast.LONG);
+                    this.leaveRoom();
+                }
             },
+            // this.leaveRoom()
         );
         ZegoExpressManager.instance().onRoomUserDeviceUpdate(
             (updateType, userID, roomID) => {
@@ -628,7 +657,8 @@ export default class CallPage extends Component {
                                     {this.state.hour != 0 ? this.state.hour + ':' + this.state.min + ':' + this.state.sec : this.state.min + ':' + this.state.sec}
                                 </Text>
                                 :
-                                null
+                                <Text style={{ marginLeft: 2, color: '#fff', fontSize: 18 }}>Connecting.....</Text>
+                                // null
                         }
                     </View>
                 </View>

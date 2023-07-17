@@ -102,7 +102,7 @@ const Messages1 = ({navigation}) => {
                     alignItems: 'center',
                   }}>
                   <Image
-                    source={require('../Assetst/Images/Group117.png')}
+                    source={require('../Assetst/Images/logoCatch.png')}
                     style={{
                       width: hp('7%'),
                       height: hp('7%'),
@@ -122,7 +122,7 @@ const Messages1 = ({navigation}) => {
                       color: '#000',
                       fontWeight: 'bold',
                     }}>
-                    memechat Official Account
+                    Catchwoo Official Account
                   </Text>
                   <Text
                     style={{fontSize: hp('1.5%'), color: '#949894'}}
@@ -154,7 +154,7 @@ const Messages1 = ({navigation}) => {
                     alignItems: 'center',
                   }}>
                   <Image
-                    source={require('../Assetst/Images/Group117.png')}
+                    source={require('../Assetst/Images/logoCatch.png')}
                     style={{
                       width: hp('7%'),
                       height: hp('7%'),

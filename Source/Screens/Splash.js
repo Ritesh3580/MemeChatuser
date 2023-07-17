@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   SafeAreaView,
@@ -19,30 +19,40 @@ import {
 import Colors from '../Assetst/Constants/Colors';
 import * as Animatable from 'react-native-animatable';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { baseurl, localBaseurl, token } from '../config/baseurl';
-import { NavigationContainer, StackActions } from '@react-navigation/native';
-import { storage } from '../store/MMKV';
+import {baseurl, localBaseurl, token} from '../config/baseurl';
+import {NavigationContainer, StackActions} from '@react-navigation/native';
+import {storage} from '../store/MMKV';
 import axios from 'axios';
+import Video from 'react-native-video';
 
-
-const Splash = ({ navigation }) => {
+const Splash = ({navigation}) => {
   const AnimationRef = useRef(null);
 
-  const page = async (e) => {
+  useEffect(() =>{
+    setTimeout(() =>
+    {
+      page();
+    },2100);
+  })
+
+  const page = async e => {
     const token = await AsyncStorage.getItem('token');
     // console.log('hiiiiii', token);
     if (token) {
-      axios.get(baseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } })
-      .then(resp=>{
-        // console.log(resp.data);
-        storage.set("user", JSON.stringify(resp.data));
-        navigation.dispatch(StackActions.replace('BottomTabNavigation'));
-      })
-      .catch(err=>{
-        // navigation.navigate('SignIn');
-        navigation.dispatch(StackActions.replace('SignIn'));
-        console.log("get profile error-->>", err.response?.data);
-      })
+      axios
+        .get(baseurl + 'showProfile', {
+          headers: {Authorization: `Bearer ${token}`},
+        })
+        .then(resp => {
+          // console.log(resp.data);
+          storage.set('user', JSON.stringify(resp.data));
+          navigation.dispatch(StackActions.replace('BottomTabNavigation'));
+        })
+        .catch(err => {
+          // navigation.navigate('SignIn');
+          navigation.dispatch(StackActions.replace('SignIn'));
+          console.log('get profile error-->>', err.response?.data);
+        });
       // const resp = await axios.get(localBaseurl + 'showProfile', { headers: { Authorization: `Bearer ${token}` } })
       // // console.log(resp.data);
       // if(resp.data){
@@ -65,21 +75,21 @@ const Splash = ({ navigation }) => {
     }
   };
 
-
   return (
     <SafeAreaView>
       <View style={styles.container}>
-        <StatusBar backgroundColor={Colors.lightPinks} />
-        <ImageBackground
-          source={require('../Assetst/Images/Splashscreen1.png')}
+        <StatusBar backgroundColor={Colors.white} />
+        {/* <ImageBackground
+          source={require('../Assetst/Images/people-persons-peoples.png')}
           style={{
             width: wp('100%'),
             height: hp('100%'),
             justifyContent: 'center',
           }}>
-          {/* <View style={{width:wp('100%'),height:hp('6%'),justifyContent:'center', alignItems:'center', marginTop:hp('50%') }}>
-                    <Text style={{color:Colors.primaryColor8 ,fontSize:hp('3%'), fontWeight:'bold',}}>meme chat</Text>
-                    </View> */}
+            <View style={{backgroundColor:Colors.darkPurple, height:hp('100%'), width:wp('100%'), opacity:0.6, justifyContent: 'center',
+              alignItems: 'center', }}>
+
+      
           <TouchableOpacity
             style={{
               width: wp('100%'),
@@ -87,13 +97,13 @@ const Splash = ({ navigation }) => {
               justifyContent: 'center',
               alignItems: 'center',
             }}>
-            {/* <Image source={require('../Assetst/Images/logomemechat.png')} style={{ width: wp('15%'), height: wp('15%'), justifyContent:'center',alignItems:'center' }} /> */}
+
             <Animatable.Image
               style={styles.logo}
               animation="slideInUp"
               delay={200}
               duration={4000}
-              source={require('../Assetst/Images/logomemechat.png')}
+              source={require('../Assetst/Images/logoCatch.png')}
             />
           </TouchableOpacity>
           <View
@@ -104,32 +114,32 @@ const Splash = ({ navigation }) => {
               alignItems: 'center',
               marginTop: hp('4%'),
             }}
-          //  onPress={_onPress}
+        
           >
             <Animatable.View
               animation="slideInDown"
               delay={200}
               duration={4000}
               onAnimationEnd={e => page(e)}>
-              {/* <Text
-                style={{
-                  color: Colors.primaryColor8,
-                  fontSize: hp('3%'),
-                  fontWeight: 'bold',
-                  fontStyle:'italic'
-                }}>
-                  Meme chat
-                
-              </Text> */}
+             
 
               <Image
                 resizeMode="stretch"
-                source={require('../Assetst/Images/memechat1.png')}
+                source={require('../Assetst/Images/Only-Text.png')}
                 style={{ width: wp('38%'), height: wp('18%') }}
               />
             </Animatable.View>
           </View>
-        </ImageBackground>
+
+          </View>
+        </ImageBackground>  */}
+        <Video
+          source={require('../Assetst/video/catchsplash.mp4')}
+          style={{top:0,left:0,right:0,bottom:0, position:'absolute'}}
+          muted={true}
+          repeat={true}
+          resizeMode='cover'
+        />
       </View>
     </SafeAreaView>
   );

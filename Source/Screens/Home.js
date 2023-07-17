@@ -382,7 +382,7 @@ export default function Home(props) {
                     justifyContent: 'center',
                     borderRadius: hp('2%'),
                     borderWidth: 1,
-                    borderColor: '#b15eff',
+                    //borderColor: '#b15eff',
                     alignItems: 'center',
                     marginTop: hp('1%'),
                   }}
@@ -402,7 +402,8 @@ export default function Home(props) {
                       imageStyle={{
                         borderRadius: hp('2%'),
                         borderWidth: 1,
-                        borderColor: '#b15eff',
+                        //borderColor: '#b15eff',
+                        backgroundColor:'gray'
                       }}>
                       {item.acctiveStatus == 'online' ? (
                         <View

@@ -179,7 +179,7 @@ const SignIn = ({ navigation }) => {
       <View style={styles.container}>
         <StatusBar backgroundColor={Colors.lightPurples} />
         <ImageBackground
-          source={require('../Assetst/Images/Splashscreen–2.png')}
+          source={require('../Assetst/Images/Splashscreen4.png')}
           style={{
             width: wp('100%'),
             height: hp('100%'),
@@ -189,7 +189,7 @@ const SignIn = ({ navigation }) => {
             style={{
               width: wp('100%'),
               height: hp('60%'),
-              marginTop: hp('42%'),
+              marginTop: hp('32%'),
             }}>
             <View
               style={{
@@ -200,8 +200,8 @@ const SignIn = ({ navigation }) => {
                 alignSelf: 'center',
               }}>
               <Image
-                source={require('../Assetst/Images/memechatlogo.png')}
-                style={{ width: hp('10%'), height: hp('10%') }}
+                source={require('../Assetst/Images/logoCatch.png')}
+                style={{ width: hp('15%'), height: hp('15%') }}
               />
             </View>
             <View
@@ -211,11 +211,12 @@ const SignIn = ({ navigation }) => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 alignSelf: 'center',
+                marginBottom:hp('8%')
               }}>
               <Image
                 resizeMode="stretch"
-                source={require('../Assetst/Images/memechat.png')}
-                style={{ width: wp('30%'), height: wp('12%') }}
+                source={require('../Assetst/Images/Only-Text.png')}
+                style={{ width: wp('50%'), height: wp('12%') }}
               />
             </View>
             {/* <View style={{ width: wp('100%'), height: hp('5%'), justifyContent: 'center', alignItems: 'center',  }}>
@@ -276,7 +277,7 @@ const SignIn = ({ navigation }) => {
                 style={{
                   alignSelf: 'center',
                   fontSize: hp('2%'),
-                  color: Colors.primaryGray,
+                  color: Colors.white,
                 }}>
                 Sign in with
               </Text>
@@ -374,22 +375,22 @@ const SignIn = ({ navigation }) => {
                 padding: wp('0.5%'),
                 alignItems: 'center',
               }}>
-              <Text style={{ fontSize: hp('1.6%'), color: 'black' }}>
+              <Text style={{ fontSize: hp('1.6%'), color: 'white' }}>
                 By signing up, you agree to our {''}
                 <Text
                   style={{
                     fontSize: hp('1.6%'),
-                    color: Colors.lightPinks,
+                    color: Colors.white,
                     textDecorationLine: 'underline',
                   }}>
                   Privacy Policy.
-                  <Text style={{ fontSize: hp('1.6%'), color: 'black' }}>
+                  <Text style={{ fontSize: hp('1.6%'), color: 'white' }}>
                     {' '}
                     and{' '}
                     <Text
                       style={{
                         fontSize: hp('1.6%'),
-                        color: Colors.lightPinks,
+                        color: Colors.white,
                         textDecorationLine: 'underline',
                       }}>
                       Terms of Service
