@@ -54,8 +54,9 @@ const SignIn = ({ navigation }) => {
 
           axios.post(verifyFbGL,dataEmail )
           .then(async response =>{
-                 //console.log("reso...../////",response.data);
-                 await AsyncStorage.setItem('token', response.data.token);
+               
+                 //await AsyncStorage.setItem('token', response.data.token);
+                
                  
                  if(response.data.message == "Please enter mobile number to signUp user with email and phone"){
                  await AsyncStorage.setItem('fbresult',userInfo.user.email);
@@ -106,7 +107,7 @@ const SignIn = ({ navigation }) => {
 
             const responseInfoCallback = (error, result) => {
               if (error) {
-                console.log(error)
+                console.log("--====err",error)
                 // alert('Error fetching data: ' + error.toString());
               } else {
                 console.log("fb sign in-->",result);
@@ -124,7 +125,7 @@ const SignIn = ({ navigation }) => {
                 .then(async response =>{
                        //console.log("reso...../////",response.data);
                      
-                       await AsyncStorage.setItem('token',response.data.token);
+                     //  await AsyncStorage.setItem('token',response.data.token);
                           
                        if(response.data.message == "Please enter mobile number to signUp user with email and phone"){
                        await AsyncStorage.setItem('fbresult',result.email);
@@ -145,7 +146,7 @@ const SignIn = ({ navigation }) => {
 
                 }).catch(err => {
                   SimpleToast.show("Something error occured");
-                  console.log("Something error", err);
+                  console.log("Something error--/", err);
                 })
 
 

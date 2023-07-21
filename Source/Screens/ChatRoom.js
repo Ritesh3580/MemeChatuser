@@ -1,4 +1,11 @@
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  createRef,
+} from 'react';
+
 import {
   SafeAreaView,
   StyleSheet,
@@ -7,6 +14,8 @@ import {
   FlatList,
   Image,
   Pressable,
+  TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 // import { Bubble, GiftedChat } from 'react-native-gifted-chat';
 // import firestore from '@react-native-firebase/firestore';
@@ -17,10 +26,20 @@ import Colors from '../Assetst/Constants/Colors';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment/moment';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from 'react-native-responsive-screen';
 // import Avatar from 'react-native-boring-avatars';
 
 import {Layout, Button, Input} from '@ui-kitten/components';
 import {useZIM} from '../hooks/zim';
+import Modal from 'react-native-modal';
+import axios from 'axios';
+import {baseurl} from '../config/baseurl';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import SimpleToast from 'react-native-simple-toast';
+// import ActionSheet from 'react-native-actions-sheet';
 
 const msgStyles = isMe =>
   isMe
@@ -38,6 +57,8 @@ const msgStyles = isMe =>
 const MessageItem = ({avatarMap, item, messages}) => {
   const currAvatar = avatarMap[item.senderUserID];
   const transMsg = item => {
+    // console.log("itemm.......................................//",item.largeImageDownloadUrl);
+    const stcikerUrl = item.largeImageDownloadUrl;
     const msg = item.message;
     const isURLImg = value =>
       /\w.(png|jpg|jpeg|svg|webp|gif|bmp)$/i.test(value);
@@ -46,7 +67,7 @@ const MessageItem = ({avatarMap, item, messages}) => {
         return (
           <>
             <Text>${msg}</Text>
-            <Image source={msg} resizeMode="cover" />
+            {/* <Image source={msg} resizeMode="cover" /> */}
           </>
         );
       }
@@ -61,6 +82,13 @@ const MessageItem = ({avatarMap, item, messages}) => {
             justifyContent: 'space-between',
           }}>
           <Text style={styles.messageText}>{msg}</Text>
+          {/* {console.log('messs.............................', msg)} */}
+          {stcikerUrl == null ? null : (
+            <Image
+              source={{uri: stcikerUrl}}
+              style={{height: 50, width: 50}}></Image>
+          )}
+
           <Text
             style={{
               color: item.direction == 0 ? Colors.white : Colors.gray,
@@ -110,12 +138,15 @@ const MessageItem = ({avatarMap, item, messages}) => {
 export default function ChatRoom({route, navigation}) {
   const currentUser = route?.params?.userData?.appData?.user;
   const targetHost = route?.params?.userData?.user;
+  const actionSheetRef = createRef(false);
   // console.log(targetHost);
   const type = route?.params?.type;
   const id = route?.params?.id;
   const name = route?.params?.name;
   const [isByte, setIsByte] = useState(false);
   const [inputText, setInputText] = useState('');
+
+  const [stickerIg, setstickerIg] = useState('');
   // const [count, setCount] = useState(0);
   const flatList = React.useRef(null);
 
@@ -149,6 +180,29 @@ export default function ChatRoom({route, navigation}) {
     };
   }, []);
 
+  async function getSticker() {
+    const token = await AsyncStorage.getItem('token');
+    console.log('yess', token);
+
+    try {
+      axios
+        .get(baseurl + `getAllChatSticker`, {
+          headers: {Authorization: `Bearer ${token}`},
+        })
+        .then(res => {
+          // console.log(
+          //   'ressssssssssssssssssssssssssssssssssssssssssssssss',
+          //   res.data.result,
+          // );
+          setstickerIg(res.data.result);
+        })
+        .catch(err => {
+          console.log('error St', err);
+        });
+    } catch (err) {
+      console.log('Error Of Sticker ...', err);
+    }
+  }
   const msgs = chatMap[id] || [];
 
   // useEffect(() => {
@@ -191,14 +245,125 @@ export default function ChatRoom({route, navigation}) {
   //     });
   // };
 
+  // const sendMediaMsg = () =>{
+  //   console.log("Press on gift....");
+  //   // zimAction.sendMediaMessage(mediaMessage, id , type, isByte )
+  //   // .then(() => {
+  //   //   setTimeout(() => {
+  //   //     flatList.current.scrollToEnd();
+  //   //   }, 200);
+  //   // })
+  //   // .catch((err) =>
+  //   // {
+  //   //   console.log("Not send Message ", err);
+  //   // });
+  // }
+
+  // const actionSheetRef = useRef();
+
+  // const showActionSheet = () => {
+  //   actionSheetRef.current?.setModalVisible();
+  // };
+
+  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
+
+  const [currentCoin, setcurrentCoin] = useState('');
+
+  const toggleBottomSheet = () => {
+    getSticker();
+    setIsBottomSheetVisible(!isBottomSheetVisible);
+  };
+
+  var config = {priority: 1};
+  var notification = {
+    onMessageAttached: function (message) {
+      console.log("reeeessss';l'", message);
+    },
+    onMediaUploadingProgress: function (
+      message,
+      currentFileSize,
+      totalFileSize,
+    ) {
+      console.log('-009009090090', message, currentFileSize);
+    },
+  };
+
+  async function coinsReduce() {
+    console.log('Coin Reduces........');
+    const token = await AsyncStorage.getItem('token');
+    try {
+      axios
+        .get(baseurl + 'showProfile', {
+          headers: {Authorization: `Bearer ${token}`},
+        })
+        .then(resp => {
+          console.log('Response ...............', resp.data.total_coins);
+          setcurrentCoin(resp.data.total_coins);
+        })
+        .catch(err => {
+          console.log('error Of Coing', err);
+        });
+    } catch (err) {
+      console.log('errror ...COing', err);
+    }
+  }
+
+  const sendGift = async stkUrl => {
+    coinsReduce();
+    if (currentCoin < stkUrl.coins) {
+      SimpleToast.show('Insufficient coin!');
+      console.log("current coin,,",currentCoin);
+    } else {
+      const data = {
+        spentCoins: stkUrl.coins,
+      };
+
+      const token = await AsyncStorage.getItem('token');
+
+      axios
+        .put(baseurl + `updateCoin`, data, {
+          headers: {Authorization: `Bearer ${token}`},
+        })
+        .then(res => {
+          console.log('resp/////////////////////', res);
+
+          setIsBottomSheetVisible(false);
+          console.log('Stc0------------------------', stkUrl);
+          var mediaMessageObj = {
+            fileDownloadUrl: stkUrl.stickerUrl, //  Full Image
+            thumbnailDownloadUrl: stkUrl.stickerUrl, // Thumbnail
+            largeImageDownloadUrl: stkUrl.stickerUrl, // Large image
+            type: 11,
+          };
+
+          zimAction
+            .sendMediaMessage(mediaMessageObj, id, type, config, notification)
+            .then(res => {
+              console.log('ressssss=========', res);
+            })
+            .catch(err => {
+              console.log('Error...///', err);
+            });
+        })
+        .catch(err => {
+          console.log('Eroorr', err);
+        });
+    }
+  };
+
   const sendMessage = msg => {
     setInputText('');
     // let ID = '71669691';
-    zimAction.sendChatMessage(type, msg, id, isByte).then(() => {
-      setTimeout(() => {
-        flatList.current.scrollToEnd();
-      }, 200);
-    });
+    zimAction
+      .sendChatMessage(type, msg, id, isByte)
+      .then(() => {
+        setTimeout(() => {
+          flatList.current.scrollToEnd();
+        }, 200);
+      })
+      .catch(err => {
+        console.log('Not send Message ', err);
+      });
   };
 
   // const byDate = msgs?.reduce((obj, item) => {
@@ -268,7 +433,7 @@ export default function ChatRoom({route, navigation}) {
               }}>
               <Image
                 source={{uri: targetHost.userImage}}
-                style={{height: '100%', width: '100%', borderRadius:15}}
+                style={{height: '100%', width: '100%', borderRadius: 15}}
               />
             </View>
           ) : (
@@ -277,13 +442,12 @@ export default function ChatRoom({route, navigation}) {
                 height: 30,
                 width: 30,
                 borderRadius: 15,
-               // backgroundColor: Colors.white,
+                // backgroundColor: Colors.white,
                 marginHorizontal: 10,
-                
               }}>
               <Image
                 source={require('../Assetst/Images/userss.png')}
-                style={{height: '100%', width: '100%',borderRadius:15}}
+                style={{height: '100%', width: '100%', borderRadius: 15}}
               />
             </View>
           )}
@@ -317,13 +481,90 @@ export default function ChatRoom({route, navigation}) {
           )}
           keyExtractor={item => item.id}
         />
+
+        {/* -------------------------Message Input Panel-------------------------------------- */}
         <View style={styles.footer}>
           <View style={styles.input}>
             <Input
+              style={{width: wp('77%')}}
               value={inputText}
               onChangeText={nextValue => setInputText(nextValue)}
             />
+            <TouchableOpacity onPress={toggleBottomSheet}>
+              <Image
+                source={require('../Assetst/Images/giftico.png')}
+                style={{height: 40, width: 40}}
+              />
+            </TouchableOpacity>
           </View>
+
+          <Modal
+            isVisible={isBottomSheetVisible}
+            onBackdropPress={toggleBottomSheet}
+            onBackButtonPress={toggleBottomSheet}
+            style={{justifyContent: 'flex-end', margin: 0}}>
+            <View
+              style={{
+                backgroundColor: 'white',
+                padding: 16,
+                borderTopLeftRadius: 10,
+                borderTopRightRadius: 10,
+                height: hp('40%'),
+                alignSelf: 'center',
+                width: wp('100%'),
+              }}>
+              <FlatList
+                horizontal={false}
+                keyExtractor={item => item._id}
+                numColumns={3}
+                data={stickerIg}
+                renderItem={({item, index}) => {
+                  return (
+                    <ScrollView>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          width: wp('20%'),
+                          //backgroundColor: 'gray',
+                          height: hp('10%'),
+                          alignItems: 'center',
+                          //paddingHorizontal:wp('4.5%'),
+                          alignSelf: 'center',
+                          marginVertical: 10,
+                          borderWidth: 1,
+                          borderRadius: 10,
+                          //  margin:10
+                        }}>
+                        <TouchableOpacity
+                          style={{height: hp('7%'), width: wp('20%')}}
+                          onPress={() => sendGift(item)}>
+                          <Image
+                            source={{uri: item.stickerUrl}}
+                            style={{height: hp('5%'), width: wp('20%')}}
+                          />
+                          <View
+                            style={{
+                              alignSelf: 'center',
+                              marginVertical: hp('0.5%'),
+                              flexDirection: 'row',
+                            }}>
+                            <Image
+                              source={require('../Assetst/Images/coins.png')}
+                              style={{height: 20, width: 20}}
+                            />
+                            <Text style={{color: 'black', fontSize: 12}}>
+                              {item.coins}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      </View>
+                    </ScrollView>
+                  );
+                }}
+              />
+            </View>
+          </Modal>
+
           <Pressable
             onPress={() => sendMessage(inputText)}
             style={{
@@ -402,6 +643,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    flexDirection: 'row',
   },
   inputButton: {
     backgroundColor: '#f5f5f5',

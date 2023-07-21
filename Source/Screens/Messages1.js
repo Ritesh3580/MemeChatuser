@@ -184,6 +184,7 @@ const Messages1 = ({navigation}) => {
                 </View>
               </View>
             </TouchableOpacity>
+            
           </ScrollView>
         </View>
       </View>

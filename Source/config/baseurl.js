@@ -3,11 +3,11 @@
 //exports.baseurl = 'https://walrus-app-wer9f.ondigitalocean.app/api/';
 
        
-exports.baseurl  = 'https://api.memechat.co.in/api/'
+exports.baseurl  = 'https://api.catchwoo.com/api/'
 // exports.localBaseurl = 'https://memechatapi.herokuapp.com/api/';
 //exports.localBaseurl = 'https://walrus-app-wer9f.ondigitalocean.app/api/'
 
-exports.localBaseurl = 'https://api.memechat.co.in/api/'
+exports.localBaseurl = 'https://api.catchwoo.com/api/'
 
 // exports.applyAsHostURL = 'https://transcendent-dodol-78eea0.netlify.app/'
 exports.applyAsHostURL = 'https://web.memechat.co.in/host'
