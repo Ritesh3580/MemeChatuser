@@ -204,7 +204,8 @@ export default class CallPage extends Component {
     isVisible: false, //state of modal default false
     stickerAll: [],
     error: null,
-    currentCoin:null
+    currentCoin:null,
+    hostIDD: null,
   };
 
   componentDidMount() {
@@ -538,6 +539,7 @@ export default class CallPage extends Component {
             let userBalance = userData?.total_coins;
             let hostFees = hostData?.hostuser_fees;
             let hostId = hostData?.userId;
+            this.setState({hostIDD :hostData?.userId });
             if (Number(userBalance) < Number(hostFees)) {
               SimpleToast.show('Insufficient coin!');
               this.leaveRoom();
@@ -602,6 +604,7 @@ export default class CallPage extends Component {
             let userBalance = userData?.total_coins;
             let hostFees = hostData?.hostuser_fees;
             let hostId = hostData?.userId;
+            this.setState({hostIDD :hostData?.userId });
             if (Number(userBalance) < Number(hostFees)) {
               SimpleToast.show('Insufficient coin!');
               this.leaveRoom();
@@ -721,8 +724,10 @@ export default class CallPage extends Component {
     SimpleToast.show("Insufficient coin!");
    }
    else{
+    console.log("Host id..........................Oooooo",this.state.hostIDD);
     let data = {
         spentCoins: stkUrl.coins,
+        userId : this.state.hostIDD
       };
       const token = await AsyncStorage.getItem('token');
 
@@ -731,7 +736,7 @@ export default class CallPage extends Component {
         headers: {Authorization: `Bearer ${token}`},
       })
       .then(res => {
-      console.log("ress Data ...");
+      console.log("ress Data .............",res.data);
       SimpleToast.show("Send Gift Successfully");
       this.setState({isVisible: !this.state.isVisible});
 

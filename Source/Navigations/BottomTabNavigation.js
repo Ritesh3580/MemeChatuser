@@ -507,6 +507,7 @@ class BottomTabNavigation extends Component {
     });
     // console.log("set current user====",resp.data)
     if (resp.data) {
+     // console.log("Resppp Data.....................................1111",resp.data);
       await AsyncStorage.setItem('uid', resp.data.uid);
       this.setState({
         user: resp.data,
@@ -551,9 +552,10 @@ class BottomTabNavigation extends Component {
           ? BackgroundTimer.clearTimeout(this.background_timer)
           : null;
         {
-          console.log('Presss...........................///sssss');
+          //console.log('Presss...........................///sssss Details............', detail.notification);
 
           this.handleIncomingCallScrr(detail);
+         
 
           await notifee.cancelAllNotifications();
         }
@@ -561,6 +563,7 @@ class BottomTabNavigation extends Component {
       } else if (type == EventType.ACTION_PRESS && detail.pressAction.id) {
         if (detail.pressAction.id == 'accept') {
           console.log('Accept the call...', detail.notification.data.roomID);
+
           this.handleIncomingCall(detail.notification.data.roomID);
         }
         this.timer !== undefined ? clearTimeout(this.timer) : null;

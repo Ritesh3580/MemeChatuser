@@ -287,6 +287,7 @@ export default function ChatRoom({route, navigation}) {
       console.log('-009009090090', message, currentFileSize);
     },
   };
+ // console.log("Target Host ......",targetHost);
 
   async function coinsReduce() {
     console.log('Coin Reduces........');
@@ -314,9 +315,12 @@ export default function ChatRoom({route, navigation}) {
       SimpleToast.show('Insufficient coin!');
       console.log("current coin,,",currentCoin);
     } else {
+      //console.log("Target Host ......",targetHost);
       const data = {
         spentCoins: stkUrl.coins,
+       userId : id
       };
+     // console.log("Id................................",id);
 
       const token = await AsyncStorage.getItem('token');
 
@@ -350,6 +354,9 @@ export default function ChatRoom({route, navigation}) {
         });
     }
   };
+
+
+
 
   const sendMessage = msg => {
     setInputText('');

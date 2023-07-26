@@ -214,8 +214,8 @@ export default function InCommingVideoCall ()  {
    
     <ImageBackground   resizeMode="cover"  source={bg}  style= {styles.bg}>
       <Image source={{uri : appData.user.imageUrl}} style={{height:100,width:100, marginTop:80, borderRadius:50}}/>
-      <Text style={styles.name}>{appData.user.fullName}</Text>
-      <Text style={styles.phoneNumber}>{appData.user.city}</Text>
+      <Text style={styles.name}>{appData.user.userId}</Text>
+      {/* <Text style={styles.phoneNumber}>{appData.user.city}</Text> */}
 
       <View style={[styles.row, {marginTop: 'auto'}]}>
         {/* <View style={styles.iconContainer}>
