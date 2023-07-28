@@ -727,7 +727,8 @@ export default class CallPage extends Component {
     console.log("Host id..........................Oooooo",this.state.hostIDD);
     let data = {
         spentCoins: stkUrl.coins,
-        userId : this.state.hostIDD
+        userId : this.state.hostIDD,
+        stickerUrl: stkUrl.stickerUrl
       };
       const token = await AsyncStorage.getItem('token');
 
