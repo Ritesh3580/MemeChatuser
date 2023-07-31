@@ -19,14 +19,14 @@ import {
 } from 'react-native-responsive-screen';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import axios from 'axios';
-const apiUrl = "https://api.memechat.co.in/api/socialPhoneLogin";
+const apiUrl = "https://api.catchwoo.com/api/socialPhoneLogin";
 import { localBaseurl } from '../config/baseurl';
 import SimpleToast from 'react-native-simple-toast';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Use } from 'react-native-svg';
 import { useRoute } from '@react-navigation/native';
 
-const verifyOtpUrl = "https://api.memechat.co.in/api/verifySocialPhoneOTP";
+const verifyOtpUrl = "https://api.catchwoo.com/api/verifySocialPhoneOTP";
 
 const alreadyApi = localBaseurl + 'isAlreadyRegistered';
 

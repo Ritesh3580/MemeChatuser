@@ -120,7 +120,7 @@ const Delete = props => {
               marginTop: hp('0.7%'),
             }}
             numberOfLines={1}>
-            If you want to permanently delete your Memechat Acoount, let{' '}
+            If you want to permanently delete your CatchWoo Acoount, let{' '}
           </Text>
           <Text
             style={{

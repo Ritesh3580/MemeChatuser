@@ -390,11 +390,11 @@ const ProfileScreen = ({route, navigation}) => {
                   }}
                   style={{height: 100, width: 100}}
                   imageStyle={{
-                    height: hp('15%'),
+                    height: hp('13%'),
                     width: wp('25%'),
                     marginTop: hp('0.5%'),
                     alignItems: 'center',
-                    borderRadius: hp('1%'),
+                    borderRadius: hp('6%'),
                     backgroundColor: 'gray',
                     backgroundColor: 'skyblue',
                   }}></ImageBackground>
@@ -813,7 +813,7 @@ const ProfileScreen = ({route, navigation}) => {
               height: hp('7%'),
               backgroundColor: Colors.lightPurples,
               alignSelf: 'center',
-              marginTop: hp('0%'),
+              marginTop: hp('2%'),
               justifyContent: 'center',
               alignItems: 'center',
               borderRadius: hp('1.5%'),

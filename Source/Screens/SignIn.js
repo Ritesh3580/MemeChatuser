@@ -31,7 +31,7 @@ import axios from 'axios';
 import SimpleToast from 'react-native-simple-toast';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const verifyFbGL = "https://api.memechat.co.in/api/socialLogin"
+const verifyFbGL = "https://api.catchwoo.com/api/socialLogin"
 
 
 const SignIn = ({ navigation }) => {

@@ -131,7 +131,7 @@ const MyWallet = props => {
 
     try {
       const response = await axios.get(
-        `https://api.memechat.co.in/api/orderDetail/` + OrderIdKey,
+        `https://api.catchwoo.com/api/orderDetail/` + OrderIdKey,
         {headers},
       );
 
@@ -190,14 +190,14 @@ const MyWallet = props => {
 
     try {
       const response = await axios.post(
-        `https://api.memechat.co.in/api/createOrder`,
+        `https://api.catchwoo.com/api/createOrder`,
         {
           RedirectUrl: '',
           OrderAmount: 1.0,
           ProductData: {
             PaymentReason: 'CoinPayment',
             ItemId: '01',
-            AppName: 'memeChat',
+            AppName: 'CatchWoo',
           },
           CustomerData: {
             MobileNo: preData.phone,
@@ -542,7 +542,7 @@ const MyWallet = props => {
             Recharge
           </Text>
 
-          <View style={{width: wp('100%'), height: hp('41%'), marginTop: 10}}>
+          <View style={{width: wp('100%'), height: hp('62%'), marginTop: 10}}>
             <FlatList
               data={coinsData}
               keyExtractor={(item, index) => index}

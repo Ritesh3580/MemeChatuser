@@ -209,7 +209,7 @@ const Feedback = props => {
               paddingLeft: wp('4%'),
             }}
             onPress={() =>
-              Linking.openURL('https://web.memechat.co.in/termsOfUse')
+              Linking.openURL('https://catchwoo.com/termsOfUse')
             }>
             <Text style={{ fontSize: hp('2.5%'), color: '#000000' }}>
               Terms of Service
@@ -231,7 +231,7 @@ const Feedback = props => {
               paddingLeft: wp('4%'),
             }}
             onPress={() =>
-              Linking.openURL('https://web.memechat.co.in/privacyPolicy')
+              Linking.openURL('https://catchwoo.com/privacyPolicy')
             }>
             <Text style={{ fontSize: hp('2.5%'), color: '#000000' }}>
               Privacy Policy

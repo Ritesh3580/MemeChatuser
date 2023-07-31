@@ -67,7 +67,7 @@ const LeftBox = ({ item }) => (
     }
 
     {
-     // console.log("item........sifhsuhfuashfsh",item)
+      // console.log("item........sifhsuhfuashfsh",item) &&
       item?.conversationAvatarUrl ?(
         <Image
         style={styles.avatar}
@@ -96,6 +96,7 @@ const Messages = props => {
   // const Tab = createMaterialTopTabNavigator();
   const [loading, setLoading] = React.useState(true);
   const [hostData, setHostData] = React.useState(null);
+  const [hostProfile , sethostProfile] = React.useState(null);
 
   const [state, zimAction] = useZIM();
 
@@ -131,6 +132,9 @@ const Messages = props => {
       .then(async res => {
         // console.log("ALL Hosts---->>>>>>", res.data);
         setHostData(res.data);
+        
+        console.log("All Host Data...........", res.data?.userImage);
+
         setLoading(false);
         storage.set('AllHost', JSON.stringify(res.data));
       })

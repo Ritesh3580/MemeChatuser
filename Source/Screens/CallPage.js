@@ -864,7 +864,7 @@ export default class CallPage extends Component {
                           //paddingHorizontal:wp('4.5%'),
                           alignSelf: 'center',
                           marginVertical: 10,
-                          borderWidth: 1,
+                         // borderWidth: 1,
                           borderRadius: 10,
                           //  margin:10
                         }}>

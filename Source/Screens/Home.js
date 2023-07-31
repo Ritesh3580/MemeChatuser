@@ -70,6 +70,8 @@ export default function Home(props) {
   //   return unsubscribe;
   // }, []);
 
+
+  //console.log("Appp data.....................................///", userData?.total_coins);
   useEffect(() => {
     zimAction.initEvent();
     zimAction
@@ -86,6 +88,9 @@ export default function Home(props) {
       handleIncomingCall(props.route.params.roomID);
     }
   }, []);
+
+
+
 
   useEffect(() => {
     if (isFocused) {
@@ -120,6 +125,7 @@ export default function Home(props) {
       .then(responses => {
         // console.log("ok1");
         let HostArr = [];
+      //  console.log(".......................//////////////////////////..................",responses[0].data);
         setUserData(responses[0].data);
         // setData(responses[1].data);
         storage.set('AllHost', JSON.stringify(responses[1].data));
@@ -154,39 +160,48 @@ export default function Home(props) {
     }
     let randomPromise = Promise.resolve(200);
 
+   if(userData?.total_coins <= 0){
+    toggleMyMobile();
+    SimpleToast.show('insufficient coin, Please Reacharge');
+
+   }
+   else{
     axios
-      .all([
-        axios.get(baseurl + 'showProfile', {
-          headers: {Authorization: `Bearer ${token}`},
-        }),
-        axios.get(baseurl + 'getOneUserProfile/' + targetUser.userId, {
-          headers: {Authorization: `Bearer ${token}`},
-        }),
-        randomPromise,
-      ])
-      .then(responses => {
-        if (
-          responses[0]?.data?.total_coins <
-          responses[1]?.data?.getuser?.hostuser_fees
-        ) {
-          console.log('insufficient coin');
-          toggleMyMobile();
-          return;
-        }
-        //console.log(baseurl + 'showProfile')
-        // setIsCalling(true);
-        // alert('calling');
-        sendCallInvite({
-          roomID: appData.user.userId,
-          user: appData.user,
-          targetUserID: targetUser.userId,
-        });
-        jumpToCallPage(appData?.user?.userId);
-      })
-      .catch(err => {
-        SimpleToast.show('Server down!');
-        console.log('get user during video call-->', err);
+    .all([
+      axios.get(baseurl + 'showProfile', {
+        headers: {Authorization: `Bearer ${token}`},
+      }),
+      axios.get(baseurl + 'getOneUserProfile/' + targetUser.userId, {
+        headers: {Authorization: `Bearer ${token}`},
+      }),
+      randomPromise,
+    ])
+    .then(responses => {
+      if (
+        responses[0]?.data?.total_coins <
+        responses[1]?.data?.getuser?.hostuser_fees
+      ) {
+        console.log('insufficient coin');
+        toggleMyMobile();
+        return;
+      }
+      //console.log(baseurl + 'showProfile')
+      // setIsCalling(true);
+      // alert('calling');
+      sendCallInvite({
+        roomID: appData.user.userId,
+        user: appData.user,
+        targetUserID: targetUser.userId,
       });
+      jumpToCallPage(appData?.user?.userId);
+    })
+    .catch(err => {
+      SimpleToast.show('Server down!');
+      console.log('get user during video call-->', err);
+    });
+   }
+
+   
   }
 
   async function sendCallInvite(data) {
@@ -353,68 +368,241 @@ export default function Home(props) {
           )}
         </View>
 
-        <FlatList
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(item, index) => index}
-          data={data}
-          numColumns={2}
-          contentContainerStyle={{paddingBottom: 100}}
-          renderItem={({item, index}) => {
-            // if (blockedHostId.includes(item._id)) {
-            //   return null;
-            // }
-            return (
-              <View
-                style={{
-                  width: wp('50%'),
-                  height: hp('30.5%'),
-                  alignSelf: 'center',
-                  flexDirection: 'row',
-                  justifyContent: 'space-around',
-                  alignItems: 'center',
-                  paddingHorizontal: wp('0.8%'),
-                  // backgroundColor:'red'
-                }}>
-                <TouchableOpacity
+        {
+          data == "" ? 
+          
+         <View style={{alignItems:'center', justifyContent:'center', height:hp('60%')}}>
+             <Text style={{color:'black'}}>
+              No Host available
+             </Text>
+           </View>
+           :  (
+            <FlatList
+            showsVerticalScrollIndicator={false}
+            keyExtractor={(item, index) => index}
+            data={data}
+            numColumns={2}
+            contentContainerStyle={{paddingBottom: 100}}
+            renderItem={({item, index}) => {
+              // if (blockedHostId.includes(item._id)) {
+              //   return null;
+              // }
+              return (
+                <View
                   style={{
-                    width: wp('49%'),
-                    height: hp('29.8%'),
-                    justifyContent: 'center',
-                    borderRadius: hp('2%'),
-                    borderWidth: 1,
-                    //borderColor: '#b15eff',
+                    width: wp('50%'),
+                    height: hp('30.5%'),
+                    alignSelf: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'space-around',
                     alignItems: 'center',
-                    marginTop: hp('1%'),
-                  }}
-                  onPress={() => {
-                    let navData = {
-                      appData: appData,
-                      roomID: props.route?.params?.roomID,
-                      user: item,
-                    };
-                    props.navigation.navigate('ProfileDetails', navData);
+                    paddingHorizontal: wp('0.8%'),
+                    // backgroundColor:'red'
                   }}>
-                  {item.userImage ? (
-                    <ImageBackground
-                      source={{uri: item.userImage}}
-                      resizeMode="cover"
-                      style={{width: wp('49%'), height: hp('29.8%')}}
-                      imageStyle={{
-                        borderRadius: hp('2%'),
-                        borderWidth: 1,
-                        //borderColor: '#b15eff',
-                        backgroundColor:'gray'
-                      }}>
-                      {item.acctiveStatus == 'online' ? (
+                  <TouchableOpacity
+                    style={{
+                      width: wp('49%'),
+                      height: hp('29.8%'),
+                      justifyContent: 'center',
+                      borderRadius: hp('2%'),
+                      borderWidth: 1,
+                      //borderColor: '#b15eff',
+                      alignItems: 'center',
+                      marginTop: hp('1%'),
+                    }}
+                    onPress={() => {
+                      let navData = {
+                        appData: appData,
+                        roomID: props.route?.params?.roomID,
+                        user: item,
+                      };
+                      props.navigation.navigate('ProfileDetails', navData);
+                    }}>
+                    {item.userImage ? (
+                      <ImageBackground
+                        source={{uri: item.userImage}}
+                        resizeMode="cover"
+                        style={{width: wp('49%'), height: hp('29.8%')}}
+                        imageStyle={{
+                          borderRadius: hp('2%'),
+                          borderWidth: 1,
+                          //borderColor: '#b15eff',
+                          backgroundColor:'gray'
+                        }}>
+                        {item.acctiveStatus == 'online' ? (
+                          <View
+                            style={{
+                              width: wp('42%'),
+                              height: hp('5%'),
+                              justifyContent: 'center',
+                              padding: wp('2%'),
+                              // backgroundColor:'red'
+                            }}>
+                            <TouchableOpacity
+                              style={{
+                                width: wp('10%'),
+                                height: hp('2%'),
+                                backgroundColor: Colors.green2,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: hp('1.5%'),
+                                position: 'absolute',
+                              }}>
+                              {/* {
+                                  item.acctiveStatus == "offline" &&
+                                  console.log("active status ...........",item.acctiveStatus)
+                                } */}
+                              <Text
+                                style={{
+                                  fontSize: hp('1%'),
+                                  color: Colors.white,
+                                  textTransform: 'capitalize',
+                                }}>
+                                {item.acctiveStatus}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        ) : (
+                          <View
+                            style={{
+                              width: wp('42%'),
+                              height: hp('5%'),
+                              justifyContent: 'center',
+                              padding: wp('2%'),
+                              // backgroundColor:'red'
+                            }}>
+                            <TouchableOpacity
+                              style={{
+                                width: wp('10%'),
+                                height: hp('2%'),
+                                // backgroundColor: Colors.green2,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: hp('1.5%'),
+                                position: 'absolute',
+                              }}>
+                              {/* {
+                                item.acctiveStatus == "offline" &&
+                                console.log("active status ...........",item.acctiveStatus)
+                              } */}
+                              <Text
+                                style={{
+                                  fontSize: hp('1%'),
+                                  color: Colors.white,
+                                  textTransform: 'capitalize',
+                                }}>
+                                {/* {item.acctiveStatus} */}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                        <View
+                          style={{
+                            width: wp('45%'),
+                            height: hp('6%'),
+                            marginTop: hp('16%'),
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            // backgroundColor:'purple',
+                            alignSelf: 'center',
+                          }}>
+                          <View
+                            style={{
+                              width: wp('25%'),
+                              height: hp('6%'),
+                              //alignItems: 'center',
+                              justifyContent: 'center',
+                              //backgroundColor:'skyblue',
+                              paddingLeft: 10,
+                            }}>
+                            <View style={{flexDirection: 'row'}}>
+                              <Text
+                                style={{
+                                  fontSize: hp('2%'),
+                                  fontWeight: 'bold',
+                                  color: Colors.black,
+                                  //alignItems:'center'
+                                }}>
+                                {item.FirstName}
+                              </Text>
+                              {/* <Text
+                                  style={{
+                                    fontSize: hp('1.5%'),
+                                    color: Colors.white,
+                                  }}>
+                                  30
+                                </Text> */}
+                            </View>
+                            <TouchableOpacity style={{flexDirection: 'row'}}>
+                              <Ionicons
+                                name="md-location-sharp"
+                                size={hp('2%')}
+                                style={{color: '#ffff'}}
+                              />
+                              <Text
+                                style={{
+                                  fontSize: hp('1.5%'),
+                                  marginLeft: wp('1%'),
+                                  fontWeight: 'bold',
+                                  color: Colors.black,
+                                }}>
+                                {item.city}
+                                {/* noida */}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            style={{
+                              width: wp('17%'),
+                              height: hp('6%'),
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}>
+                            <TouchableOpacity
+                              onPress={async () => {
+                                // await setTargetUser(item);
+                                await AsyncStorage.setItem(
+                                  'targetUser',
+                                  JSON.stringify(item),
+                                );
+                                await startCall(item);
+                              }}
+                              style={{
+                                width: hp('5%'),
+                                height: hp('5%'),
+                                borderRadius: hp('5%'),
+                                backgroundColor: Colors.white,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}>
+                              <Ionicons
+                                name="videocam-outline"
+                                solid
+                                size={hp('3%')}
+                                style={{color: '#b15eff'}}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </ImageBackground>
+                    ) : (
+                      <ImageBackground
+                        source={{uri: item.userImage}}
+                        resizeMode="cover"
+                        style={{width: wp('49%'), height: hp('24.8%')}}
+                        imageStyle={{
+                          borderRadius: hp('2%'),
+                          borderWidth: 1,
+                          borderColor: '#b15eff',
+                        }}>
                         <View
                           style={{
                             width: wp('42%'),
                             height: hp('5%'),
                             justifyContent: 'center',
                             padding: wp('2%'),
-                            // backgroundColor:'red'
                           }}>
-                          <TouchableOpacity
+                          {/* <TouchableOpacity
                             style={{
                               width: wp('10%'),
                               height: hp('2%'),
@@ -422,274 +610,117 @@ export default function Home(props) {
                               alignItems: 'center',
                               justifyContent: 'center',
                               borderRadius: hp('1.5%'),
-                              position: 'absolute',
                             }}>
-                            {/* {
-                                item.acctiveStatus == "offline" &&
-                                console.log("active status ...........",item.acctiveStatus)
-                              } */}
                             <Text
                               style={{
                                 fontSize: hp('1%'),
                                 color: Colors.white,
-                                textTransform: 'capitalize',
                               }}>
-                              {item.acctiveStatus}
+                              online
                             </Text>
-                          </TouchableOpacity>
+                          </TouchableOpacity> */}
                         </View>
-                      ) : (
                         <View
                           style={{
-                            width: wp('42%'),
-                            height: hp('5%'),
-                            justifyContent: 'center',
-                            padding: wp('2%'),
-                            // backgroundColor:'red'
-                          }}>
-                          <TouchableOpacity
-                            style={{
-                              width: wp('10%'),
-                              height: hp('2%'),
-                              // backgroundColor: Colors.green2,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              borderRadius: hp('1.5%'),
-                              position: 'absolute',
-                            }}>
-                            {/* {
-                              item.acctiveStatus == "offline" &&
-                              console.log("active status ...........",item.acctiveStatus)
-                            } */}
-                            <Text
-                              style={{
-                                fontSize: hp('1%'),
-                                color: Colors.white,
-                                textTransform: 'capitalize',
-                              }}>
-                              {/* {item.acctiveStatus} */}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      )}
-                      <View
-                        style={{
-                          width: wp('45%'),
-                          height: hp('6%'),
-                          marginTop: hp('16%'),
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          // backgroundColor:'purple',
-                          alignSelf: 'center',
-                        }}>
-                        <View
-                          style={{
-                            width: wp('25%'),
+                            width: wp('45%'),
                             height: hp('6%'),
-                            //alignItems: 'center',
-                            justifyContent: 'center',
-                            //backgroundColor:'skyblue',
-                            paddingLeft: 10,
+                            marginTop: hp('18%'),
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            //backgroundColor:'purple',
+                            alignSelf: 'center',
                           }}>
-                          <View style={{flexDirection: 'row'}}>
-                            <Text
-                              style={{
-                                fontSize: hp('2%'),
-                                fontWeight: 'bold',
-                                color: Colors.black,
-                                //alignItems:'center'
-                              }}>
-                              {item.FirstName}
-                            </Text>
-                            {/* <Text
+                          <View
+                            style={{
+                              width: wp('25%'),
+                              height: hp('6%'),
+                              //alignItems: 'center',
+                              justifyContent: 'center',
+                              //backgroundColor:'skyblue',
+                              paddingLeft: 10,
+                            }}>
+                            <View style={{flexDirection: 'row'}}>
+                              <Text
+                                style={{
+                                  fontSize: hp('2%'),
+                                  fontWeight: 'bold',
+                                  color: '#eb4034',
+                                  //alignItems:'center'
+                                }}>
+                                {item.FirstName}
+                              </Text>
+                              {/* <Text
+                                  style={{
+                                    fontSize: hp('1.5%'),
+                                    color: Colors.white,
+                                  }}>
+                                  30
+                                </Text> */}
+                            </View>
+                            <TouchableOpacity style={{flexDirection: 'row'}}>
+                              <Ionicons
+                                name="md-location-sharp"
+                                size={hp('2%')}
+                                style={{color: '#ffff'}}
+                              />
+                              <Text
                                 style={{
                                   fontSize: hp('1.5%'),
-                                  color: Colors.white,
+                                  marginLeft: wp('1%'),
+                                  fontWeight: 'bold',
+                                  color: Colors.black,
                                 }}>
-                                30
-                              </Text> */}
+                                {item.city}
+                                {/* noida */}
+                              </Text>
+                            </TouchableOpacity>
                           </View>
-                          <TouchableOpacity style={{flexDirection: 'row'}}>
-                            <Ionicons
-                              name="md-location-sharp"
-                              size={hp('2%')}
-                              style={{color: '#ffff'}}
-                            />
-                            <Text
-                              style={{
-                                fontSize: hp('1.5%'),
-                                marginLeft: wp('1%'),
-                                fontWeight: 'bold',
-                                color: Colors.black,
-                              }}>
-                              {item.city}
-                              {/* noida */}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                        <View
-                          style={{
-                            width: wp('17%'),
-                            height: hp('6%'),
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}>
-                          <TouchableOpacity
-                            onPress={async () => {
-                              // await setTargetUser(item);
-                              await AsyncStorage.setItem(
-                                'targetUser',
-                                JSON.stringify(item),
-                              );
-                              await startCall(item);
-                            }}
+                          <View
                             style={{
-                              width: hp('5%'),
-                              height: hp('5%'),
-                              borderRadius: hp('5%'),
-                              backgroundColor: Colors.white,
+                              width: wp('17%'),
+                              height: hp('6%'),
                               alignItems: 'center',
                               justifyContent: 'center',
                             }}>
-                            <Ionicons
-                              name="videocam-outline"
-                              solid
-                              size={hp('3%')}
-                              style={{color: '#b15eff'}}
-                            />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </ImageBackground>
-                  ) : (
-                    <ImageBackground
-                      source={{uri: item.userImage}}
-                      resizeMode="cover"
-                      style={{width: wp('49%'), height: hp('24.8%')}}
-                      imageStyle={{
-                        borderRadius: hp('2%'),
-                        borderWidth: 1,
-                        borderColor: '#b15eff',
-                      }}>
-                      <View
-                        style={{
-                          width: wp('42%'),
-                          height: hp('5%'),
-                          justifyContent: 'center',
-                          padding: wp('2%'),
-                        }}>
-                        {/* <TouchableOpacity
-                          style={{
-                            width: wp('10%'),
-                            height: hp('2%'),
-                            backgroundColor: Colors.green2,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: hp('1.5%'),
-                          }}>
-                          <Text
-                            style={{
-                              fontSize: hp('1%'),
-                              color: Colors.white,
-                            }}>
-                            online
-                          </Text>
-                        </TouchableOpacity> */}
-                      </View>
-                      <View
-                        style={{
-                          width: wp('45%'),
-                          height: hp('6%'),
-                          marginTop: hp('18%'),
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          //backgroundColor:'purple',
-                          alignSelf: 'center',
-                        }}>
-                        <View
-                          style={{
-                            width: wp('25%'),
-                            height: hp('6%'),
-                            //alignItems: 'center',
-                            justifyContent: 'center',
-                            //backgroundColor:'skyblue',
-                            paddingLeft: 10,
-                          }}>
-                          <View style={{flexDirection: 'row'}}>
-                            <Text
+                            <TouchableOpacity
+                              onPress={async () => {
+                                await AsyncStorage.setItem(
+                                  'targetUser',
+                                  JSON.stringify(item),
+                                );
+                                await startCall(item);
+                              }}
                               style={{
-                                fontSize: hp('2%'),
-                                fontWeight: 'bold',
-                                color: '#eb4034',
-                                //alignItems:'center'
+                                width: hp('5%'),
+                                height: hp('5%'),
+                                borderRadius: hp('5%'),
+                                backgroundColor: Colors.white,
+                                alignItems: 'center',
+                                justifyContent: 'center',
                               }}>
-                              {item.FirstName}
-                            </Text>
-                            {/* <Text
-                                style={{
-                                  fontSize: hp('1.5%'),
-                                  color: Colors.white,
-                                }}>
-                                30
-                              </Text> */}
+                              <Ionicons
+                                name="videocam-outline"
+                                solid
+                                size={hp('3%')}
+                                style={{color: '#b15eff'}}
+                              />
+                            </TouchableOpacity>
                           </View>
-                          <TouchableOpacity style={{flexDirection: 'row'}}>
-                            <Ionicons
-                              name="md-location-sharp"
-                              size={hp('2%')}
-                              style={{color: '#ffff'}}
-                            />
-                            <Text
-                              style={{
-                                fontSize: hp('1.5%'),
-                                marginLeft: wp('1%'),
-                                fontWeight: 'bold',
-                                color: Colors.black,
-                              }}>
-                              {item.city}
-                              {/* noida */}
-                            </Text>
-                          </TouchableOpacity>
                         </View>
-                        <View
-                          style={{
-                            width: wp('17%'),
-                            height: hp('6%'),
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}>
-                          <TouchableOpacity
-                            onPress={async () => {
-                              await AsyncStorage.setItem(
-                                'targetUser',
-                                JSON.stringify(item),
-                              );
-                              await startCall(item);
-                            }}
-                            style={{
-                              width: hp('5%'),
-                              height: hp('5%'),
-                              borderRadius: hp('5%'),
-                              backgroundColor: Colors.white,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}>
-                            <Ionicons
-                              name="videocam-outline"
-                              solid
-                              size={hp('3%')}
-                              style={{color: '#b15eff'}}
-                            />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </ImageBackground>
-                  )}
-                </TouchableOpacity>
-              </View>
-            );
-          }}
-        />
+                      </ImageBackground>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              );
+            }}
+          />
+          )
+        }
+
+       
+
+
+
         <View style={{bottom: 0}}>
           <Modal
             isVisible={myModal}

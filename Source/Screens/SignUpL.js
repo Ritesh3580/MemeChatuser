@@ -10,7 +10,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const sendUrl ="https://api.memechat.co.in/api/socialPhoneLogin";
+const sendUrl ="https://api.catchwoo.com/api/socialPhoneLogin";
 
 const {height,width} = Dimensions.get('window')
 export default function SignUpL({navigation}) 
@@ -19,11 +19,9 @@ export default function SignUpL({navigation})
   const result = route.params?.result;
 
   const [num, setNum] = useState(null);
-  const [otpValue, setOtp] = useState(null);
+
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [detailsValue, setdetailsValue] = useState(null);
-  const [detailsId, setDetailId] = useState(null);
-  const [data, setData] = useState('');
+
   const [getValue, setGetValue] = useState(true);
 
   console.log("--------,,,,,,,",result);

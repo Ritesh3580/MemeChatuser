@@ -220,10 +220,11 @@ const zimHooks = () => {
           payload: { convs: res.conversationList },
         })
         const ids = []
+        console.log("Resss...........................",res);
         res.conversationList.forEach((item) => {
           if (!item.type) ids.push(item.conversationID)
         })
-        // console.log("conversationList", res);
+         console.log("conversationList-------------------------------", res);
         setAvatarMap(ids)
         return res
       })
