@@ -31,8 +31,7 @@ import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import notifee from // AndroidVisibility, // AndroidImportance, // EventType, // AuthorizationStatus,
-'@notifee/react-native';
+import notifee from '@notifee/react-native'; // AndroidVisibility, // AndroidImportance, // EventType, // AuthorizationStatus,
 
 notifee.createChannel({
   id: 'custom-sound',
@@ -204,7 +203,7 @@ export default class CallPage extends Component {
     isVisible: false, //state of modal default false
     stickerAll: [],
     error: null,
-    currentCoin:null,
+    currentCoin: null,
     hostIDD: null,
   };
 
@@ -296,7 +295,7 @@ export default class CallPage extends Component {
           }
         } else {
           console.log('Host is Left Please Cut a Call');
-          SimpleToast.show('Host is Left', SimpleToast.LONG);
+          SimpleToast.show('Host Left', SimpleToast.LONG);
           this.leaveRoom();
         }
       },
@@ -539,7 +538,7 @@ export default class CallPage extends Component {
             let userBalance = userData?.total_coins;
             let hostFees = hostData?.hostuser_fees;
             let hostId = hostData?.userId;
-            this.setState({hostIDD :hostData?.userId });
+            this.setState({hostIDD: hostData?.userId});
             if (Number(userBalance) < Number(hostFees)) {
               SimpleToast.show('Insufficient coin!');
               this.leaveRoom();
@@ -604,7 +603,7 @@ export default class CallPage extends Component {
             let userBalance = userData?.total_coins;
             let hostFees = hostData?.hostuser_fees;
             let hostId = hostData?.userId;
-            this.setState({hostIDD :hostData?.userId });
+            this.setState({hostIDD: hostData?.userId});
             if (Number(userBalance) < Number(hostFees)) {
               SimpleToast.show('Insufficient coin!');
               this.leaveRoom();
@@ -695,7 +694,7 @@ export default class CallPage extends Component {
     }
   }
 
-  async  coinsReduce() {
+  async coinsReduce() {
     console.log('Coin Reduces........');
     const token = await AsyncStorage.getItem('token');
     try {
@@ -715,39 +714,39 @@ export default class CallPage extends Component {
     }
   }
 
- async sendGift (stkUrl){
-   console.log("hjwehfehfafhh4444pii3ppp",stkUrl);
+  async sendGift(stkUrl) {
+    console.log('hjwehfehfafhh4444pii3ppp', stkUrl);
 
-   console.log("Current Coin......",this.state.currentCoin);
+    console.log('Current Coin......', this.state.currentCoin);
 
-   if(this.state.currentCoin < stkUrl.coins){
-    SimpleToast.show("Insufficient coin!");
-   }
-   else{
-    console.log("Host id..........................Oooooo",this.state.hostIDD);
-    let data = {
+    if (this.state.currentCoin < stkUrl.coins) {
+      SimpleToast.show('Insufficient coin!');
+    } else {
+      console.log(
+        'Host id..........................Oooooo',
+        this.state.hostIDD,
+      );
+      let data = {
         spentCoins: stkUrl.coins,
-        userId : this.state.hostIDD,
-        stickerUrl: stkUrl.stickerUrl
+        userId: this.state.hostIDD,
+        stickerUrl: stkUrl.stickerUrl,
       };
       const token = await AsyncStorage.getItem('token');
 
       axios
-      .put(baseurl + `updateCoin`, data, {
-        headers: {Authorization: `Bearer ${token}`},
-      })
-      .then(res => {
-      console.log("ress Data .............",res.data);
-      SimpleToast.show("Send Gift Successfully");
-      this.setState({isVisible: !this.state.isVisible});
-
-      })
-      .catch(err =>{
-        console.log("errorr....",err);
-      })
-
-   }
- }
+        .put(baseurl + `updateCoinVideoCall`, data, {
+          headers: {Authorization: `Bearer ${token}`},
+        })
+        .then(res => {
+          console.log('ress Data .............', res.data);
+          SimpleToast.show('Send Gift Successfully');
+          this.setState({isVisible: !this.state.isVisible});
+        })
+        .catch(err => {
+          console.log('errorr....', err);
+        });
+    }
+  }
 
   render() {
     // console.log(this.state.userAvailCoin);
@@ -864,7 +863,7 @@ export default class CallPage extends Component {
                           //paddingHorizontal:wp('4.5%'),
                           alignSelf: 'center',
                           marginVertical: 10,
-                         // borderWidth: 1,
+                          // borderWidth: 1,
                           borderRadius: 10,
                           //  margin:10
                         }}>
@@ -895,7 +894,6 @@ export default class CallPage extends Component {
                   );
                 }}
               />
-
 
               {/* {this.state.stickerAll.map((item, index) => (
                 <ScrollView >

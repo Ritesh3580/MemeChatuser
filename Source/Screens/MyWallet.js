@@ -93,21 +93,23 @@ const MyWallet = props => {
   };
 
   const addPaymentHistory = async data => {
-    console.log('Data...............', data.OrderKeyId);
+    console.log('Data.......................', data);
 
     const token = await AsyncStorage.getItem('token');
     let paymentInfo = {
       payment_history: [
         {
-          txnId: data.OrderKeyId,
-          resCode: data.UniqueRequestId,
-          txnRef: data.OrderType,
+          txnId: data.orderKeyId,
+          resCode: data.TransactionId,
+          txnRef: data.TransactionRefNo,
           status: data.OrderPaymentStatusText,
           price: coinsItemObj.price,
           coins: coinsItemObj.coins,
         },
       ],
     };
+
+    console.log("Payment history data ....upload....", paymentInfo);
     axios
       .put(localBaseurl + 'addpaymenthistory', paymentInfo, {
         headers: {Authorization: `Bearer ${token}`},
@@ -136,14 +138,16 @@ const MyWallet = props => {
       );
 
       //console.log("responses payenmmm",response.data);
-      console.log(
-        'ress..............................',
-        response.data.data.OrderPaymentStatusText,
-      );
-      if (response.data.data.OrderPaymentStatusText == 'Paid') {
+    
+      if (response.data.OrderPaymentStatusText == 'Paid') {
         setProcessing(false);
         SimpleToast.show('Payment Processed Successfully!', SimpleToast.LONG);
-        addPaymentHistory(response.data.data);
+        addPaymentHistory(response.data);
+        console.log(
+          'ress..............Data..//................',
+          response.data,
+        );
+
         successCallback();
       } else {
         SimpleToast.show('Payment Is Pending!', SimpleToast.LONG);
@@ -157,24 +161,15 @@ const MyWallet = props => {
 
   //-------------------------------------------PAYG PAYMENT GATEWAY INTEGRATION-----------------------------------
   const _makePayment = async item => {
-    console.log('item make payment---->>>>>>', item);
+    //console.log('item make payment---->>>>>>', item);
     const refId = _makeid(16);
     const date = moment().utcOffset('+05:30').format('YYYY-MM-DD:hh:mm:ss a');
     console.log(date);
 
     setCoinsItemObj(item);
 
-    console.log('coinsItemObj-----', coinsItemObj);
-    // RNUpiPayment.initializePayment({
-    //   vpa: VPA, // it should be a merchant upi
-    //   payeeName: PAYEE_NAME,
-    //   amount: item.price,
-    //   transactionRef: refId,
-    //   time:date
-    // }, successCallback, failureCallback);
-
-    // const postData = async () => {
-
+   // console.log('coinsItemObj-----', coinsItemObj);
+  
     const token = await AsyncStorage.getItem('token');
 
     const headers = {
@@ -209,10 +204,12 @@ const MyWallet = props => {
       );
 
       // Handle response
-      console.log('response data......-----', response.data);
+     console.log('response data......-----', response.data);
 
-      if (response.data.message == 'Payment Url Created') {
+      if (response.data.message == 'Payment Url Generated') {
         const link = response.data.paymnetProcessUrl;
+
+
         console.log('jkasjaskjfkas Link', link);
         Linking.openURL(link)
           .then(result => {

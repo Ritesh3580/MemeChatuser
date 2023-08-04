@@ -108,11 +108,11 @@ const Report = ({ navigation, route }) => {
         method: 'POST',
       });
 
-      console.log("report-->>", response.data);
+      console.log("report-------->>", response.data);
         SimpleToast.show('Successfully reported...');
         // navigation.navigate('BottomTabNavigation');
     } catch (error) {
-      console.log('report --->>', error.response?.data);
+      console.log('report error--->>', error.response?.data);
       SimpleToast.show("Sorry!, got some error...", SimpleToast.LONG);
     }
   };
